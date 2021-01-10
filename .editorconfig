@@ -1,0 +1,22 @@
+﻿[*.{cs,vb}]
+
+# IDE0049: Simplify Names
+dotnet_diagnostic.IDE0049.severity = none
+
+# IDE0001: Simplify Names
+dotnet_diagnostic.IDE0001.severity = none
+
+# IDE0022: Use block body for methods
+dotnet_diagnostic.IDE0022.severity = none
+
+# CA1822: Mark members as static
+dotnet_diagnostic.CA1822.severity = none
+
+# IDE0047: Remove unnecessary parentheses
+dotnet_diagnostic.IDE0047.severity = none
+
+# IDE0063: Use simple 'using' statement
+dotnet_diagnostic.IDE0063.severity = none
+
+# IDE0057: Use range operator
+csharp_style_prefer_range_operator = false:suggestion
