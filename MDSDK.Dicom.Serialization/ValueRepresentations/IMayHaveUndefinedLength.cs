@@ -2,7 +2,7 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public interface IMayHaveUndefinedLength
+    internal interface IMayHaveUndefinedLength
     {
     }
 }

@@ -20,3 +20,9 @@ dotnet_diagnostic.IDE0063.severity = none
 
 # IDE0057: Use range operator
 csharp_style_prefer_range_operator = false:suggestion
+
+# IDE0017: Simplify object initialization
+dotnet_style_object_initializer = false:suggestion
+
+# CA2208: Instantiate argument exceptions correctly
+dotnet_diagnostic.CA2208.severity = error

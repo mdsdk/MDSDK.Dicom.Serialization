@@ -1,17 +1,16 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
-using MDSDK.BinaryIO;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class BinaryEncodedPrimitiveValueBase<T> : ValueRepresentation where T : struct, IFormattable
+    public class BinaryEncodedPrimitiveValueBase<T> : ValueRepresentation, 
+        IHasLightWeightValueLengthCalculation<T>, IHasLightWeightValueLengthCalculation<T[]> where T : struct, IFormattable
     {
         private static readonly Type[] AllowedTypes = new[]
         {
@@ -54,5 +53,9 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             writer.WriteVRLength(this, valueLength, out _);
             writer.Output.Write<T>(value);
         }
+
+        long IHasLightWeightValueLengthCalculation<T>.GetUnpaddedValueLength(T value) => Unsafe.SizeOf<T>();
+
+        long IHasLightWeightValueLengthCalculation<T[]>.GetUnpaddedValueLength(T[] values) => (long)values.Length * Unsafe.SizeOf<T>();
     }
 }

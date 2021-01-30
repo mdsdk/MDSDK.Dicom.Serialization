@@ -2,7 +2,8 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    internal interface IHasDefinedLengthOnly
+    internal interface IHasLightWeightValueLengthCalculation<T>
     {
+        long GetUnpaddedValueLength(T value);
     }
 }

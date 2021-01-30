@@ -8,17 +8,17 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
     public sealed class Sequence<T> : ValueRepresentation, ISingleValue<List<T>>, IHas32BitExplicitVRLength, IMayHaveUndefinedLength
         where T : new()
     {
-        private readonly DicomDeserializer<T> _deserializer;
+        private readonly DicomSerializer<T> _serializer;
 
         public Sequence() : base("SQ")
         {
-            _deserializer = DicomDeserializer.GetDeserializer<T>();
+            _serializer = DicomSerializer.GetSerializer<T>();
         }
 
         public List<T> ReadValue(DicomStreamReader reader)
         {
             var items = new List<T>();
-            reader.ReadSequenceItems(_deserializer.Deserialize, items.Add);
+            reader.ReadSequenceItems(_serializer.Deserialize, items.Add);
             return items;
         }
 

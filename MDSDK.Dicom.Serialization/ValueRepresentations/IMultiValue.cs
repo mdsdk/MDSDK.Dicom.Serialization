@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
-using System.Linq;
-
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public interface IMultiValue : IHasDefinedLengthOnly
+    public interface IMultiValue
     {
     }
     

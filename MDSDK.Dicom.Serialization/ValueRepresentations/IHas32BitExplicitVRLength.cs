@@ -2,7 +2,7 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public interface IHas32BitExplicitVRLength
+    internal interface IHas32BitExplicitVRLength
     {
     }
 }

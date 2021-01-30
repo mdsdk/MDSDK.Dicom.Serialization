@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
-using MDSDK.BinaryIO;
 using System;
 using System.Text;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public abstract class AsciiEncodedValue : ValueRepresentation, IHasDefinedLengthOnly
+    public abstract class AsciiEncodedValue : ValueRepresentation, IHasDefinedLengthOnly, 
+        IHasLightWeightValueLengthCalculation<string>, IHasLightWeightValueLengthCalculation<string[]>
     {
         internal AsciiEncodedValue(string vr) : base(vr) { }
 
@@ -49,6 +49,26 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             if (pad)
             {
                 writer.Output.WriteByte((byte)' ');
+            }
+        }
+
+        long IHasLightWeightValueLengthCalculation<string>.GetUnpaddedValueLength(string value) => value.Length;
+
+        long IHasLightWeightValueLengthCalculation<string[]>.GetUnpaddedValueLength(string[] values)
+        {
+            if (values.Length == 0)
+            {
+                return 0;
+            }
+            else
+            {
+                long unpaddedValueLength = values[0].Length;
+                for (var i = 1; i < values.Length; i++)
+                {
+                    unpaddedValueLength++; // '\' separator
+                    unpaddedValueLength += values[i].Length;
+                }
+                return unpaddedValueLength;
             }
         }
     }

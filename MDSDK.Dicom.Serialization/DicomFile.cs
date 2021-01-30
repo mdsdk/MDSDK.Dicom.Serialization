@@ -33,8 +33,8 @@ namespace MDSDK.Dicom.Serialization
             (byte)0x00, (byte)0x01,                         // actual value (0, 1)
         };
 
-        private static readonly DicomDeserializer<DicomFileMetaInformation> MetaInformationDeserializer
-            = DicomDeserializer.GetDeserializer<DicomFileMetaInformation>();
+        private static readonly DicomSerializer<DicomFileMetaInformation> MetaInformationSerializer
+            = DicomSerializer.GetSerializer<DicomFileMetaInformation>();
 
         public bool CanRead(Stream stream, out DicomStreamReader datasetReader)
         {
@@ -66,7 +66,7 @@ namespace MDSDK.Dicom.Serialization
             input.Read(metaInformationLength - AfterFileMetaInformationLength.Length, () =>
             {
                 var metaInformationReader = new DicomStreamReader(input, DicomVRCoding.Explicit);
-                MetaInformation = MetaInformationDeserializer.Deserialize(metaInformationReader);
+                MetaInformation = MetaInformationSerializer.Deserialize(metaInformationReader);
             });
 
             if (DicomUID.TryLookup(MetaInformation.MediaStorageSOPClassUID, out DicomUID sopClassUID))

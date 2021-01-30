@@ -34,21 +34,53 @@ namespace MDSDK.Dicom.Serialization
             tag.WriteTo(Output);
         }
 
-        private const uint UndefinedLength = uint.MaxValue;
-
-        public void WriteVRLength(ValueRepresentation vr, long valueLength, out bool pad)
+        public static long GetDataElementLength(ValueRepresentation vr, DicomVRCoding vrCoding, long unpaddedValueLength)
         {
-            if (valueLength >= UndefinedLength)
+            if (unpaddedValueLength >= uint.MaxValue)
             {
-                throw new ArgumentOutOfRangeException($"Value length {valueLength} out of 32-bit range", nameof(valueLength));
+                throw new ArgumentOutOfRangeException(nameof(unpaddedValueLength), $"{unpaddedValueLength} is out of 32-bit range");
             }
 
-            pad = (valueLength % 2) != 0;
+            var valueLength = ((unpaddedValueLength % 2) != 0) ? (uint)unpaddedValueLength + 1: (uint)unpaddedValueLength;
+
+            long dataElementLength = 4;
             
-            if (pad)
+            if (vrCoding == DicomVRCoding.Explicit)
             {
-                valueLength++;
+                dataElementLength += 2;
+                if (vr is IHas16BitExplicitVRLength)
+                {
+                    if (valueLength >= ushort.MaxValue)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(unpaddedValueLength), $"{unpaddedValueLength} is out of 16-bit range");
+                    }
+                    dataElementLength += 2;
+                }
+                else
+                {
+                    dataElementLength += 6;
+                }
             }
+            else
+            {
+                dataElementLength += 4;
+            }
+
+            dataElementLength += valueLength;
+
+            return dataElementLength;
+        }
+
+        public void WriteVRLength(ValueRepresentation vr, long unpaddedValueLength, out bool pad)
+        {
+            if (unpaddedValueLength >= uint.MaxValue)
+            {
+                throw new ArgumentOutOfRangeException(nameof(unpaddedValueLength), $"{unpaddedValueLength} is out of 32-bit range");
+            }
+
+            pad = (unpaddedValueLength % 2) != 0;
+            
+            var valueLength = pad ? (uint)unpaddedValueLength + 1: (uint)unpaddedValueLength;
 
             if (VRCoding == DicomVRCoding.Explicit)
             {
@@ -58,133 +90,20 @@ namespace MDSDK.Dicom.Serialization
                 {
                     if (valueLength >= ushort.MaxValue)
                     {
-                        throw new ArgumentOutOfRangeException($"Value length {valueLength} out of 16-bit range", nameof(valueLength));
-
+                        throw new ArgumentOutOfRangeException(nameof(unpaddedValueLength), $"{unpaddedValueLength} is out of 16-bit range");
                     }
                     Output.Write<UInt16>((ushort)valueLength);
                 }
                 else
                 {
                     Output.WriteZeros(2);
-                    Output.Write<UInt32>((uint)valueLength);
+                    Output.Write<UInt32>(valueLength);
                 }
             }
             else
             {
-                Output.Write<UInt32>((uint)valueLength);
+                Output.Write<UInt32>(valueLength);
             }
         }
-
-        /*
-        private T ReadItemValue<T>(Func<DicomStreamReader, T> itemDeserializer)
-        {
-            T item;
-            if (ValueLength == UndefinedLength)
-            {
-                var itemReader = CreateNestedReader();
-                item = itemDeserializer.Invoke(itemReader);
-                itemReader.SkipToDelimiter(DicomTag.ItemDelimitationItem);
-            }
-            else
-            {
-                var itemBox = Input.OpenBox(ValueLength);
-                var itemReader = CreateNestedReader();
-                item = itemDeserializer.Invoke(itemReader);
-                Input.CloseBox(itemBox);
-            }
-            CurrentTag = DicomTag.Undefined;
-            return item;
-        }
-
-        abstract class SequenceReader<T> : IEnumerator<T>
-        {
-            protected readonly DicomStreamReader _sequenceValueReader;
-
-            protected readonly Func<DicomStreamReader, T> _itemDeserializer;
-
-            protected readonly DicomStreamReader _sequenceItemsReader;
-
-            protected SequenceReader(DicomStreamReader sequenceValueReader, Func<DicomStreamReader, T> itemDeserializer)
-            {
-                _sequenceValueReader = sequenceValueReader;
-                _itemDeserializer = itemDeserializer;
-                _sequenceItemsReader = sequenceValueReader.CreateNestedReader();
-            }
-
-            public abstract bool MoveNext();
-
-            public T Current { get; protected set; }
-
-            object IEnumerator.Current => Current;
-
-            public abstract void Dispose();
-
-            public void Reset() => throw new NotSupportedException();
-        }
-
-        class DefinedLengthSequenceRReader<T> : SequenceReader<T>
-        {
-            private readonly BinaryStreamReader.ContentBox _sequenceValueBox;
-
-            public DefinedLengthSequenceRReader(DicomStreamReader reader, Func<DicomStreamReader, T> itemDeserializer)
-                : base(reader, itemDeserializer)
-            {
-                _sequenceValueBox = _sequenceValueReader.StartReadValueWithDefinedLength();
-            }
-
-            public override bool MoveNext()
-            {
-                if (_sequenceItemsReader.TryReadItemTagOfSequenceWithDefinedLength())
-                {
-                    Current = _sequenceItemsReader.ReadItemValue(_itemDeserializer);
-                    return true;
-                }
-                else
-                {
-                    _sequenceValueReader.EndReadValue(_sequenceValueBox);
-                    return false;
-                }
-            }
-
-            public override void Dispose()
-            {
-                // Nothing to do
-            }
-        }
-
-        class UndefinedLengthSequenceReader<T> : SequenceReader<T>
-        {
-            public UndefinedLengthSequenceReader(DicomStreamReader reader, Func<DicomStreamReader, T> itemDeserializer)
-                : base(reader, itemDeserializer)
-            {
-            }
-
-            public override bool MoveNext()
-            {
-                if (_sequenceItemsReader.TryReadItemTagOfSequenceWithUndefinedLength())
-                {
-                    Current = _sequenceItemsReader.ReadItemValue(_itemDeserializer);
-                    return true;
-                }
-                else
-                {
-                    _sequenceValueReader.CurrentTag = DicomTag.Undefined;
-                    return false;
-                }
-            }
-
-            public override void Dispose()
-            {
-                // Nothing to do
-            }
-        }
-
-        internal IEnumerator<T> GetSequenceReader<T>(Func<DicomStreamReader, T> itemDeserializer)
-        {
-            return (ValueLength == UndefinedLength)
-                ? new UndefinedLengthSequenceReader<T>(this, itemDeserializer)
-                : new DefinedLengthSequenceRReader<T>(this, itemDeserializer);
-        }
-        */
     }
 }

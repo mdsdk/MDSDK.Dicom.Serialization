@@ -4,7 +4,8 @@ using System.Collections.Generic;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public sealed class AttributeTag : ValueRepresentation, IMultiValue<DicomTag>, IHas16BitExplicitVRLength
+    public sealed class AttributeTag : ValueRepresentation, IMultiValue<DicomTag>, IHas16BitExplicitVRLength,
+        IHasLightWeightValueLengthCalculation<DicomTag>, IHasLightWeightValueLengthCalculation<DicomTag[]>
     {
         internal AttributeTag() : base("AT") { }
 
@@ -55,5 +56,9 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             writer.WriteVRLength(this, 4, out _);
             value.WriteTo(writer.Output);
         }
+
+        long IHasLightWeightValueLengthCalculation<DicomTag>.GetUnpaddedValueLength(DicomTag value) => 4;
+
+        long IHasLightWeightValueLengthCalculation<DicomTag[]>.GetUnpaddedValueLength(DicomTag[] values) => values.Length * 4;
     }
 }

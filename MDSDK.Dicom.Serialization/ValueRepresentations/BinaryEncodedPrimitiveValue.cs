@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class BinaryEncodedPrimitiveValue<T> : BinaryEncodedPrimitiveValueBase<T>, IMultiValue<T> where T : struct, IFormattable
+    public class BinaryEncodedPrimitiveValue<T> : BinaryEncodedPrimitiveValueBase<T>, IMultiValue<T>, IHasDefinedLengthOnly where T : struct, IFormattable
     {
         internal BinaryEncodedPrimitiveValue(string vr) : base(vr) { }
 
