@@ -9,8 +9,8 @@ using System.Runtime.CompilerServices;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class BinaryEncodedPrimitiveValueBase<T> : ValueRepresentation, 
-        IHasLightWeightValueLengthCalculation<T>, IHasLightWeightValueLengthCalculation<T[]> where T : struct, IFormattable
+    public class BinaryEncodedPrimitiveValueBase<T> : ValueRepresentation, IHasLightWeightValueLengthCalculation<T> 
+        where T : unmanaged, IFormattable
     {
         private static readonly Type[] AllowedTypes = new[]
         {
@@ -29,10 +29,11 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             var count = GetValueCount<T>(reader);
             var array = new T[count];
             reader.Input.Read<T>(array);
+            reader.EndReadValue();
             return array;
         }
 
-        public override string ToString(DicomStreamReader reader)
+        internal override string ToString(DicomStreamReader reader)
         {
             IEnumerable<string> EnumerateStringValues(int count)
             {
@@ -44,10 +45,12 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             }
 
             var count = GetValueCount<T>(reader);
-            return string.Join('\\', EnumerateStringValues(count));
+            var result = string.Join('\\', EnumerateStringValues(count));
+            reader.EndReadValue();
+            return result;
         }
 
-        protected void WriteArray(DicomStreamWriter writer, T[] value)
+        internal void WriteArray(DicomStreamWriter writer, T[] value)
         {
             var valueLength = Unsafe.SizeOf<T>() * value.LongLength;
             writer.WriteVRLength(this, valueLength, out _);
@@ -56,6 +59,6 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
 
         long IHasLightWeightValueLengthCalculation<T>.GetUnpaddedValueLength(T value) => Unsafe.SizeOf<T>();
 
-        long IHasLightWeightValueLengthCalculation<T[]>.GetUnpaddedValueLength(T[] values) => (long)values.Length * Unsafe.SizeOf<T>();
+        long IHasLightWeightValueLengthCalculation<T>.GetUnpaddedValueLength(T[] values) => values.LongLength * Unsafe.SizeOf<T>();
     }
 }

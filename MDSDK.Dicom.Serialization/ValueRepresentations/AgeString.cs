@@ -2,8 +2,8 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public sealed class AgeString : AsciiEncodedMultiValue
+    public class AgeString : AsciiEncodedMultiValue
     {
-        internal AgeString() : base("AS") { }
+        public AgeString() : base("AS") { }
     }
 }

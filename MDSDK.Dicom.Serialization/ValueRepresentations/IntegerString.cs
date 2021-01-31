@@ -5,9 +5,9 @@ using System;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public sealed class IntegerString : AsciiEncodedMultiValue, IMultiValue<int>
+    public class IntegerString : AsciiEncodedMultiValue, IMultiValue<int>
     {
-        internal IntegerString() : base("IS") { }
+        public IntegerString() : base("IS") { }
 
         int[] IMultiValue<int>.ReadValues(DicomStreamReader reader) => ReadAndConvertValues(reader, int.Parse);
         

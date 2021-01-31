@@ -2,8 +2,8 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public sealed class LongString : SpecificCharsetEncodedMultiValue, IHas16BitExplicitVRLength
+    public class LongString : SpecificCharsetEncodedMultiValue, IHas16BitExplicitVRLength
     {
-        internal LongString() : base("LO") { }
+        public LongString() : base("LO") { }
     }
 }

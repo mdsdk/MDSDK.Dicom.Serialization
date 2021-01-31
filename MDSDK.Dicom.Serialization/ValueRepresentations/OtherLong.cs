@@ -2,8 +2,8 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public sealed class OtherLong : OtherBinaryEncodedPrimitiveValue<uint>
+    public class OtherLong : OtherBinaryEncodedPrimitiveValue<uint>
     {
-        internal OtherLong() : base("OL") { }
+        public OtherLong() : base("OL") { }
     }
 }

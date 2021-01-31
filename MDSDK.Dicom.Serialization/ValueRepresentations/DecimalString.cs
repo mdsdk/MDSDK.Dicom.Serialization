@@ -7,7 +7,7 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
     public class DecimalString : AsciiEncodedMultiValue, IMultiValue<decimal>, IMultiValue<double>, IMultiValue<float>
     {
-        internal DecimalString() : base("DS") { }
+        public DecimalString() : base("DS") { }
 
         decimal[] IMultiValue<decimal>.ReadValues(DicomStreamReader reader) => ReadAndConvertValues(reader, decimal.Parse);
         

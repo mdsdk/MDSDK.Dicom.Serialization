@@ -2,8 +2,8 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public sealed class OtherFloat : OtherBinaryEncodedPrimitiveValue<float>
+    public class OtherFloat : OtherBinaryEncodedPrimitiveValue<float>
     {
-        internal OtherFloat() : base("OF") { }
+        public OtherFloat() : base("OF") { }
     }
 }

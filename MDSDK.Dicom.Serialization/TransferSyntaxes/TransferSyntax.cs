@@ -12,7 +12,7 @@ namespace MDSDK.Dicom.Serialization.TransferSyntaxes
 
         public ByteOrder ByteOrder { get; }
         
-        protected TransferSyntax(DicomUID dicomUID, DicomVRCoding vrCoding, ByteOrder byteOrder)
+        internal TransferSyntax(DicomUID dicomUID, DicomVRCoding vrCoding, ByteOrder byteOrder)
         {
             DicomUID = dicomUID;
             VRCoding = vrCoding;

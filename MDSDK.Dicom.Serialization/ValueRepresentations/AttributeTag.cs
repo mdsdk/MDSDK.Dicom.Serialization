@@ -4,10 +4,10 @@ using System.Collections.Generic;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public sealed class AttributeTag : ValueRepresentation, IMultiValue<DicomTag>, IHas16BitExplicitVRLength,
-        IHasLightWeightValueLengthCalculation<DicomTag>, IHasLightWeightValueLengthCalculation<DicomTag[]>
+    public class AttributeTag : ValueRepresentation, IMultiValue<DicomTag>, IHas16BitExplicitVRLength,
+        IHasLightWeightValueLengthCalculation<DicomTag>
     {
-        internal AttributeTag() : base("AT") { }
+        public AttributeTag() : base("AT") { }
 
         public DicomTag[] ReadValues(DicomStreamReader reader)
         {
@@ -17,16 +17,19 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             {
                 array[i] = DicomTag.ReadFrom(reader.Input);
             }
+            reader.EndReadValue();
             return array;
         }
 
         public DicomTag ReadSingleValue(DicomStreamReader reader)
         {
             EnsureSingleValue(reader, 4);
-            return DicomTag.ReadFrom(reader.Input);
+            var tag = DicomTag.ReadFrom(reader.Input);
+            reader.EndReadValue();
+            return tag;
         }
 
-        public override string ToString(DicomStreamReader reader)
+        internal override string ToString(DicomStreamReader reader)
         {
             IEnumerable<string> EnumerateStringValues(int count)
             {
@@ -39,7 +42,9 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             }
 
             var count = GetValueCount(reader, 4);
-            return string.Join('\\', EnumerateStringValues(count));
+            var result = string.Join('\\', EnumerateStringValues(count));
+            reader.EndReadValue();
+            return result;
         }
 
         public void WriteValues(DicomStreamWriter writer, DicomTag[] values)
@@ -59,6 +64,6 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
 
         long IHasLightWeightValueLengthCalculation<DicomTag>.GetUnpaddedValueLength(DicomTag value) => 4;
 
-        long IHasLightWeightValueLengthCalculation<DicomTag[]>.GetUnpaddedValueLength(DicomTag[] values) => values.Length * 4;
+        long IHasLightWeightValueLengthCalculation<DicomTag>.GetUnpaddedValueLength(DicomTag[] values) => values.Length * 4;
     }
 }

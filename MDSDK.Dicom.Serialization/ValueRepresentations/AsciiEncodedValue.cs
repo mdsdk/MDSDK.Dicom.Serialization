@@ -6,14 +6,15 @@ using System.Text;
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
     public abstract class AsciiEncodedValue : ValueRepresentation, IHasDefinedLengthOnly, 
-        IHasLightWeightValueLengthCalculation<string>, IHasLightWeightValueLengthCalculation<string[]>
+        IHasLightWeightValueLengthCalculation<string>
     {
         internal AsciiEncodedValue(string vr) : base(vr) { }
 
-        protected string ReadEntireValue(DicomStreamReader reader)
+        internal string ReadEntireValue(DicomStreamReader reader)
         {
             var valueLength = GetDefinedValueLength(reader);
             var bytes = reader.Input.ReadBytes(valueLength);
+            reader.EndReadValue();
             var significantBytes = StripNonSignificantBytes(bytes);
             return Encoding.ASCII.GetString(significantBytes);
         }
@@ -39,9 +40,9 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             return bytes.AsSpan(start, end - start);
         }
 
-        public override string ToString(DicomStreamReader reader) => ReadEntireValue(reader);
+        internal override string ToString(DicomStreamReader reader) => ReadEntireValue(reader);
 
-        protected void WriteEntireValue(DicomStreamWriter writer, string value)
+        internal void WriteEntireValue(DicomStreamWriter writer, string value)
         {
             var bytes = Encoding.ASCII.GetBytes(value);
             writer.WriteVRLength(this, bytes.Length, out bool pad);
@@ -54,7 +55,7 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
 
         long IHasLightWeightValueLengthCalculation<string>.GetUnpaddedValueLength(string value) => value.Length;
 
-        long IHasLightWeightValueLengthCalculation<string[]>.GetUnpaddedValueLength(string[] values)
+        long IHasLightWeightValueLengthCalculation<string>.GetUnpaddedValueLength(string[] values)
         {
             if (values.Length == 0)
             {

@@ -4,8 +4,8 @@ using System;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public sealed class SignedShort : BinaryEncodedPrimitiveValue<Int16>, IHas16BitExplicitVRLength
+    public class SignedShort : BinaryEncodedPrimitiveValue<Int16>, IHas16BitExplicitVRLength
     {
-        internal SignedShort() : base("SS") { }
+        public SignedShort() : base("SS") { }
     }
 }

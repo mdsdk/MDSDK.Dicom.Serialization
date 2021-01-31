@@ -3,7 +3,6 @@
 using MDSDK.BinaryIO;
 using System;
 using System.Linq;
-using System.Text;
 using System.Globalization;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
@@ -20,7 +19,7 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
 
         public string ReadSingleValue(DicomStreamReader reader) => ReadEntireValue(reader);
 
-        protected T[] ReadAndConvertValues<T>(DicomStreamReader reader, Func<string, NumberFormatInfo, T> convert)
+        internal T[] ReadAndConvertValues<T>(DicomStreamReader reader, Func<string, NumberFormatInfo, T> convert)
         {
             var stringValues = ReadValues(reader);
             var values = new T[stringValues.Length];
@@ -31,7 +30,7 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             return values;
         }
 
-        protected T ReadAndConvertSingleValue<T>(DicomStreamReader reader, Func<string, NumberFormatInfo, T> convert)
+        internal T ReadAndConvertSingleValue<T>(DicomStreamReader reader, Func<string, NumberFormatInfo, T> convert)
         {
             var stringValue = ReadSingleValue(reader);
             return convert(stringValue, NumberFormatInfo.InvariantInfo);
@@ -48,7 +47,7 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
 
         public void WriteSingleValue(DicomStreamWriter writer, string value) => WriteEntireValue(writer, value);
 
-        protected void ConvertAndWriteValues<T>(DicomStreamWriter writer, Func<T, NumberFormatInfo, string> convert, T[] values)
+        internal void ConvertAndWriteValues<T>(DicomStreamWriter writer, Func<T, NumberFormatInfo, string> convert, T[] values)
         {
             var stringValues = new string[values.Length];
             for (var i = 0; i < values.Length; i++)

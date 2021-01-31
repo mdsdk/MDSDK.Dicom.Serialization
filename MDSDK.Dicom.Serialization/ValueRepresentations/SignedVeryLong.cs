@@ -4,8 +4,8 @@ using System;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public sealed class SignedVeryLong : BinaryEncodedPrimitiveValue<Int64>, IHas32BitExplicitVRLength
+    public class SignedVeryLong : BinaryEncodedPrimitiveValue<Int64>, IHas32BitExplicitVRLength
     {
-        internal SignedVeryLong() : base("SV") { }
+        public SignedVeryLong() : base("SV") { }
     }
 }

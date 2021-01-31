@@ -5,5 +5,7 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
     internal interface IHasLightWeightValueLengthCalculation<T>
     {
         long GetUnpaddedValueLength(T value);
+
+        long GetUnpaddedValueLength(T[] values);
     }
 }

@@ -4,8 +4,8 @@ using System;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public sealed class FloatingPointDouble : BinaryEncodedPrimitiveValue<Double>, IHas16BitExplicitVRLength
+    public class FloatingPointDouble : BinaryEncodedPrimitiveValue<Double>, IHas16BitExplicitVRLength
     {
-        internal FloatingPointDouble() : base("FD") { }
+        public FloatingPointDouble() : base("FD") { }
     }
 }

@@ -19,7 +19,7 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             Id = new ValueTuple<byte, byte>((byte)name[0], (byte)name[1]);
         }
 
-        public abstract string ToString(DicomStreamReader dicomStreamReader);
+        internal abstract string ToString(DicomStreamReader dicomStreamReader);
 
         internal const uint UndefinedLength = uint.MaxValue;
 

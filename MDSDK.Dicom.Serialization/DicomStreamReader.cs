@@ -231,6 +231,7 @@ namespace MDSDK.Dicom.Serialization
                     }
                 });
             }
+            EndReadValue();
         }
 
         public void ToXml(XElement dataset)
@@ -273,7 +274,6 @@ namespace MDSDK.Dicom.Serialization
                         }
 
                         ReadSequenceItems(DeserializeItemXml, dataElement.Add);
-                        EndReadValue();
                     }
                     else if (ValueLength == UndefinedLength)
                     {
@@ -283,7 +283,6 @@ namespace MDSDK.Dicom.Serialization
                     else
                     {
                         dataElement.Value = vr.ToString(this);
-                        EndReadValue();
                     }
                 }
             }

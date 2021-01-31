@@ -2,8 +2,8 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public sealed class PersonName : SpecificCharsetEncodedMultiValue, IHas16BitExplicitVRLength
+    public class PersonName : SpecificCharsetEncodedMultiValue, IHas16BitExplicitVRLength
     {
-        internal PersonName() : base("PN") { }
+        public PersonName() : base("PN") { }
     }
 }

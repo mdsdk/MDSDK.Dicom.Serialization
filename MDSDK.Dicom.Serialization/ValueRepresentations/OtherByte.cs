@@ -16,7 +16,9 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
         {
             if (reader.ValueLength < uint.MaxValue)
             {
-                return reader.Input.ReadBytes(reader.ValueLength);
+                var result = reader.Input.ReadBytes(reader.ValueLength);
+                reader.EndReadValue();
+                return result;
             }
             else
             {
@@ -26,7 +28,9 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
                 {
                     if (reader.ValueLength < uint.MaxValue)
                     {
-                        chunks.Add(reader.Input.ReadBytes(reader.ValueLength));
+                        var chunk = reader.Input.ReadBytes(reader.ValueLength);
+                        reader.EndReadValue();
+                        chunks.Add(chunk);
                     }
                     else
                     {
@@ -46,7 +50,7 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             }
         }
 
-        public override string ToString(DicomStreamReader reader)
+        internal override string ToString(DicomStreamReader reader)
         {
             var value = ReadValue(reader);
             return (value.Length > 256) ? Convert.ToBase64String(value) : Convert.ToHexString(value);

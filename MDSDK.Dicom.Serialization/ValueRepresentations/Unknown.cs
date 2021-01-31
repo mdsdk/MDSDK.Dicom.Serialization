@@ -4,6 +4,6 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
     public sealed class Unknown : OtherBinaryEncodedPrimitiveValue<byte>
     {
-        internal Unknown() : base("UN") { }
+        public Unknown() : base("UN") { }
     }
 }

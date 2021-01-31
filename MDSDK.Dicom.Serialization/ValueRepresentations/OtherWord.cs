@@ -2,8 +2,8 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public sealed class OtherWord : OtherBinaryEncodedPrimitiveValue<ushort>
+    public class OtherWord : OtherBinaryEncodedPrimitiveValue<ushort>
     {
-        internal OtherWord() : base("OW") { }
+        public OtherWord() : base("OW") { }
     }
 }

@@ -4,6 +4,6 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
     public class Date : AsciiEncodedMultiValue
     {
-        internal Date() : base("DA") { }
+        public Date() : base("DA") { }
     }
 }

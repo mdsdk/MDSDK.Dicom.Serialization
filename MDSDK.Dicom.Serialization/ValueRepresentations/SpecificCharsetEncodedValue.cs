@@ -13,6 +13,7 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
         {
             var valueLength = GetDefinedValueLength(reader);
             var bytes = reader.Input.ReadBytes(valueLength);
+            reader.EndReadValue();
             var significantBytes = StripNonSignificantBytes(bytes);
             var encoding = reader.SpecificCharsetEncoding ?? Encoding.ASCII;
             return encoding.GetString(significantBytes);
@@ -33,9 +34,9 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             return bytes.AsSpan(0, end);
         }
 
-        public override string ToString(DicomStreamReader reader) => ReadEntireValue(reader);
+        internal override string ToString(DicomStreamReader reader) => ReadEntireValue(reader);
 
-        protected void WriteEntireValue(DicomStreamWriter writer, string value)
+        internal void WriteEntireValue(DicomStreamWriter writer, string value)
         {
             var encoding = writer.SpecificCharsetEncoding ?? Encoding.ASCII;
             var bytes = encoding.GetBytes(value);

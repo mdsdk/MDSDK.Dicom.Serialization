@@ -4,8 +4,8 @@ using System;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public sealed class UnsignedLong : BinaryEncodedPrimitiveValue<UInt32>, IHas16BitExplicitVRLength
+    public class UnsignedLong : BinaryEncodedPrimitiveValue<UInt32>, IHas16BitExplicitVRLength
     {
-        internal UnsignedLong() : base("UL") { }
+        public UnsignedLong() : base("UL") { }
     }
 }

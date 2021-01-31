@@ -11,10 +11,12 @@ namespace MDSDK.Dicom.Serialization
         {
             switch (specificCharacterSet)
             {
+                case "":
+                    return Encoding.ASCII;
+                case "ISO_IR 192":
+                    return Encoding.UTF8;
                 case "ISO_IR 100":
                     return Encoding.GetEncoding("iso-8859-1");
-                case "ISO_IR 192":
-                    return Encoding.GetEncoding("utf-8");
                 default:
                     throw new NotSupportedException($"DICOM character set {specificCharacterSet} is not supported");
             }
