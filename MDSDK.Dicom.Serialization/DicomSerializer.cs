@@ -106,17 +106,28 @@ namespace MDSDK.Dicom.Serialization
                 return true;
             }
 
-            var multiValueInterface = typeof(IMultiValue<>).MakeGenericType(property.PropertyType);
-            if (multiValueInterface.IsAssignableFrom(vrType))
+            if (property.PropertyType.IsArray)
             {
-                var readValueMethod = property.PropertyType.IsArray
-                    ? multiValueInterface.GetMethod(nameof(IMultiValue<object>.ReadValues))
-                    : multiValueInterface.GetMethod(nameof(IMultiValue<object>.ReadSingleValue));
-                var writeValueMethod = property.PropertyType.IsArray
-                    ? multiValueInterface.GetMethod(nameof(IMultiValue<object>.WriteValues))
-                    : multiValueInterface.GetMethod(nameof(IMultiValue<object>.WriteSingleValue));
-                propertySerializer = new PropertySerializer(property, vr, readValueMethod, writeValueMethod);
-                return true;
+                var elementType = property.PropertyType.GetElementType();
+                var multiValueInterface = typeof(IMultiValue<>).MakeGenericType(elementType);
+                if (multiValueInterface.IsAssignableFrom(vrType))
+                {
+                    var readValueMethod = multiValueInterface.GetMethod(nameof(IMultiValue<object>.ReadValues));
+                    var writeValueMethod = multiValueInterface.GetMethod(nameof(IMultiValue<object>.WriteValues));
+                    propertySerializer = new PropertySerializer(property, vr, readValueMethod, writeValueMethod);
+                    return true;
+                }
+            }
+            else
+            {
+                var multiValueInterface = typeof(IMultiValue<>).MakeGenericType(property.PropertyType);
+                if (multiValueInterface.IsAssignableFrom(vrType))
+                {
+                    var readValueMethod = multiValueInterface.GetMethod(nameof(IMultiValue<object>.ReadSingleValue));
+                    var writeValueMethod = multiValueInterface.GetMethod(nameof(IMultiValue<object>.WriteSingleValue));
+                    propertySerializer = new PropertySerializer(property, vr, readValueMethod, writeValueMethod);
+                    return true;
+                }
             }
 
             propertySerializer = null;
@@ -211,7 +222,7 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
-        internal void DeserializeProperties(object obj, DicomStreamReader reader)
+        internal void DeserializeProperties(DicomStreamReader reader, object obj)
         {
             foreach (var (tag, propertySerializer) in _propertySerializers)
             {
@@ -223,7 +234,7 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
-        internal void SerializeProperties(object obj, DicomStreamWriter writer)
+        internal void SerializeProperties(DicomStreamWriter writer, object obj)
         {
             foreach (var (tag, propertySerializer) in _propertySerializers)
             {
@@ -239,13 +250,13 @@ namespace MDSDK.Dicom.Serialization
         public object Deserialize(DicomStreamReader reader)
         {
             var dicomObject = Activator.CreateInstance(_dicomObjectType);
-            DeserializeProperties(dicomObject, reader);
+            DeserializeProperties(reader, dicomObject);
             return dicomObject;
         }
 
-        public void Serialize(object obj, DicomStreamWriter writer)
+        public void Serialize(DicomStreamWriter writer, object dicomObject)
         {
-            SerializeProperties(obj, writer);
+            SerializeProperties(writer, dicomObject);
         }
 
         private bool TryGetSerializedLength(object obj, DicomVRCoding vrCoding, out long serializedLength)
@@ -281,7 +292,7 @@ namespace MDSDK.Dicom.Serialization
 
         private static readonly Dictionary<Type, DicomSerializer> s_serializers = new();
 
-        public static DicomSerializer<T> GetSerializer<T>() where T : new()
+        public static DicomSerializer<T> GetSerializer<T>()
         {
             lock (s_serializers)
             {
@@ -300,21 +311,21 @@ namespace MDSDK.Dicom.Serialization
             var input = new BinaryStreamReader(stream, transferSyntax.ByteOrder);
             var reader = new DicomStreamReader(input, transferSyntax.VRCoding);
             var obj = new T();
-            serializer.DeserializeProperties(obj, reader);
+            serializer.DeserializeProperties(reader, obj);
             return obj;
         }
 
-        public static void Serialize<T>(Stream stream, TransferSyntax transferSyntax, T obj) where T : new()
+        public static void Serialize<T>(Stream stream, TransferSyntax transferSyntax, T obj)
         {
             var serializer = GetSerializer<T>();
             var output = new BinaryStreamWriter(stream, transferSyntax.ByteOrder);
             var writer = new DicomStreamWriter(output, transferSyntax.VRCoding);
-            serializer.SerializeProperties(obj, writer);
+            serializer.SerializeProperties(writer, obj);
             output.Flush(FlushMode.Shallow);
         }
     }
 
-    public class DicomSerializer<T> : DicomSerializer where T : new()
+    public class DicomSerializer<T> : DicomSerializer
     {
         internal DicomSerializer()
             : base(typeof(T))
@@ -323,14 +334,14 @@ namespace MDSDK.Dicom.Serialization
 
         public new T Deserialize(DicomStreamReader reader)
         {
-            var obj = new T();
-            DeserializeProperties(obj, reader);
+            var obj = Activator.CreateInstance<T>();
+            DeserializeProperties(reader, obj);
             return obj;
         }
 
-        public void Serialize(T obj, DicomStreamWriter writer)
+        public void Serialize(DicomStreamWriter writer, T obj)
         {
-            SerializeProperties(obj, writer);
+            SerializeProperties(writer, obj);
         }
     }
 }
