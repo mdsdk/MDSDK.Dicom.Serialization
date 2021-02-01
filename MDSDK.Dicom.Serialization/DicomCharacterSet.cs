@@ -11,8 +11,6 @@ namespace MDSDK.Dicom.Serialization
         {
             switch (specificCharacterSet)
             {
-                case "":
-                    return Encoding.ASCII;
                 case "ISO_IR 192":
                     return Encoding.UTF8;
                 case "ISO_IR 100":

@@ -13,8 +13,8 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
 
         public string[] ReadValues(DicomStreamReader reader)
         {
-            var values = ReadEntireValue(reader);
-            return values.Split('\\');
+            var entireValue = ReadEntireValue(reader);
+            return (entireValue.Length == 0) ? Array.Empty<string>() : entireValue.Split('\\');
         }
 
         public string ReadSingleValue(DicomStreamReader reader) => ReadEntireValue(reader);

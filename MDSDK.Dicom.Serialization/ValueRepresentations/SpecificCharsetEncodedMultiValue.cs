@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
-using MDSDK.BinaryIO;
 using System;
 using System.Linq;
-using System.Text;
-using System.Xml.Linq;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
@@ -14,8 +11,8 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
 
         public string[] ReadValues(DicomStreamReader reader)
         {
-            var values = ReadEntireValue(reader);
-            return values.Split('\\');
+            var entireValue = ReadEntireValue(reader);
+            return (entireValue.Length == 0) ? Array.Empty<string>() : entireValue.Split('\\');
         }
 
         public string ReadSingleValue(DicomStreamReader reader) => ReadEntireValue(reader);

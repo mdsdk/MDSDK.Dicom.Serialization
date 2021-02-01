@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Xml.Linq;
-using System.Linq;
 
 namespace MDSDK.Dicom.Serialization
 {
@@ -116,8 +115,11 @@ namespace MDSDK.Dicom.Serialization
         {
             if (CurrentTag == DicomTag.SpecificCharacterSet)
             {
-                var value = DicomVR.CS.ReadValues(this).First();
-                SpecificCharsetEncoding = DicomCharacterSet.GetEncoding(value);
+                var values = DicomVR.CS.ReadValues(this);
+                if (values.Length > 0)
+                {
+                    SpecificCharsetEncoding = DicomCharacterSet.GetEncoding(values[0]);
+                }
             }
             else if (ValueLength == UndefinedLength)
             {
@@ -234,7 +236,7 @@ namespace MDSDK.Dicom.Serialization
             EndReadValue();
         }
 
-        public void ToXml(XElement dataset)
+        public void ToXml(XElement dataSet)
         {
             Debug.Assert(CurrentTag == DicomTag.Undefined);
 
@@ -254,7 +256,7 @@ namespace MDSDK.Dicom.Serialization
                     : attribute.Keyword;
 
                 var dataElement = new XElement(dataElementName);
-                dataset.Add(dataElement);
+                dataSet.Add(dataElement);
 
                 var vr = ExplicitVR ?? attribute?.ImplicitVR;
                 if (vr == null)
@@ -268,9 +270,9 @@ namespace MDSDK.Dicom.Serialization
                     {
                         static XElement DeserializeItemXml(DicomStreamReader itemReader)
                         {
-                            var itemDataset = new XElement(DicomAttribute.Item.Keyword);
-                            itemReader.ToXml(itemDataset);
-                            return itemDataset;
+                            var itemDataSet = new XElement(DicomAttribute.Item.Keyword);
+                            itemReader.ToXml(itemDataSet);
+                            return itemDataSet;
                         }
 
                         ReadSequenceItems(DeserializeItemXml, dataElement.Add);

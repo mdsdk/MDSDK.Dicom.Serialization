@@ -36,7 +36,7 @@ namespace MDSDK.Dicom.Serialization
         private static readonly DicomSerializer<DicomFileMetaInformation> MetaInformationSerializer
             = DicomSerializer.GetSerializer<DicomFileMetaInformation>();
 
-        public bool CanRead(Stream stream, out DicomStreamReader datasetReader)
+        public bool CanRead(Stream stream, out DicomStreamReader dataSetReader)
         {
             Span<byte> header = stackalloc byte[128 + BeforeFileMetaInformationLength.Length + 4 + AfterFileMetaInformationLength.Length];
 
@@ -45,7 +45,7 @@ namespace MDSDK.Dicom.Serialization
                 var n = stream.Read(header.Slice(i));
                 if (n == 0)
                 {
-                    datasetReader = null;
+                    dataSetReader = null;
                     return false;
                 }
                 i += n;
@@ -56,7 +56,7 @@ namespace MDSDK.Dicom.Serialization
 
             if (!before.SequenceEqual(BeforeFileMetaInformationLength) || !after.SequenceEqual(AfterFileMetaInformationLength))
             {
-                datasetReader = null;
+                dataSetReader = null;
                 return false;
             }
 
@@ -78,12 +78,12 @@ namespace MDSDK.Dicom.Serialization
             {
                 TransferSyntax = transferSyntax;
                 input.ByteOrder = transferSyntax.ByteOrder;
-                datasetReader = new DicomStreamReader(input, transferSyntax.VRCoding);
+                dataSetReader = new DicomStreamReader(input, transferSyntax.VRCoding);
             }
             else
             {
                 input.ByteOrder = ByteOrder.LittleEndian;
-                datasetReader = new DicomStreamReader(input, DicomVRCoding.Explicit);
+                dataSetReader = new DicomStreamReader(input, DicomVRCoding.Explicit);
             }
 
             return true;
