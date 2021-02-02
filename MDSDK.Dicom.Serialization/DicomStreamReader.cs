@@ -12,21 +12,21 @@ namespace MDSDK.Dicom.Serialization
 {
     public class DicomStreamReader
     {
+        public DicomVRCoding VRCoding { get; init; }
+        
         public BinaryStreamReader Input { get; init; }
 
-        public DicomVRCoding VRCoding { get; init; }
-
-        public DicomStreamReader(BinaryStreamReader input, DicomVRCoding vrCoding)
+        public DicomStreamReader(DicomVRCoding vrCoding, BinaryStreamReader input)
         {
-            Input = input;
             VRCoding = vrCoding;
+            Input = input;
         }
 
         public Encoding SpecificCharsetEncoding { get; private set; }
 
         private DicomStreamReader CreateNestedReader()
         {
-            return new DicomStreamReader(Input, VRCoding)
+            return new DicomStreamReader(VRCoding, Input)
             {
                 SpecificCharsetEncoding = SpecificCharsetEncoding
             };

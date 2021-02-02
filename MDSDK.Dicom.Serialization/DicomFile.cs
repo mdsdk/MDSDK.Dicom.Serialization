@@ -62,10 +62,10 @@ namespace MDSDK.Dicom.Serialization
 
             var metaInformationLength = BitConverter.ToUInt32(header.Slice(128 + BeforeFileMetaInformationLength.Length, 4));
 
-            var input = new BinaryStreamReader(stream, ByteOrder.LittleEndian);
+            var input = new BinaryStreamReader(ByteOrder.LittleEndian, stream);
             input.Read(metaInformationLength - AfterFileMetaInformationLength.Length, () =>
             {
-                var metaInformationReader = new DicomStreamReader(input, DicomVRCoding.Explicit);
+                var metaInformationReader = new DicomStreamReader(DicomVRCoding.Explicit, input);
                 MetaInformation = MetaInformationSerializer.Deserialize(metaInformationReader);
             });
 
@@ -78,12 +78,12 @@ namespace MDSDK.Dicom.Serialization
             {
                 TransferSyntax = transferSyntax;
                 input.ByteOrder = transferSyntax.ByteOrder;
-                dataSetReader = new DicomStreamReader(input, transferSyntax.VRCoding);
+                dataSetReader = new DicomStreamReader(transferSyntax.VRCoding, input);
             }
             else
             {
                 input.ByteOrder = ByteOrder.LittleEndian;
-                dataSetReader = new DicomStreamReader(input, DicomVRCoding.Explicit);
+                dataSetReader = new DicomStreamReader(DicomVRCoding.Explicit, input);
             }
 
             return true;

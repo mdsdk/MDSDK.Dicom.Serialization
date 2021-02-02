@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
-using MDSDK.BinaryIO;
 using System;
 using System.IO;
 using System.Net;

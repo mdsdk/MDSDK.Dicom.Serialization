@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\BinaryIO\MDSDK.BinaryIO\MDSDK.BinaryIO.csproj" />
+    <ProjectReference Include="..\..\MDSDK.BinaryIO\MDSDK.BinaryIO\MDSDK.BinaryIO.csproj" />
   </ItemGroup>
 
   <ItemGroup>

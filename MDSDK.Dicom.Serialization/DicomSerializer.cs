@@ -305,21 +305,21 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
-        public static T Deserialize<T>(Stream stream, TransferSyntax transferSyntax) where T : new()
+        public static T Deserialize<T>(TransferSyntax transferSyntax, Stream stream) where T : new()
         {
             var serializer = GetSerializer<T>();
-            var input = new BinaryStreamReader(stream, transferSyntax.ByteOrder);
-            var reader = new DicomStreamReader(input, transferSyntax.VRCoding);
+            var input = new BinaryStreamReader(transferSyntax.ByteOrder, stream);
+            var reader = new DicomStreamReader(transferSyntax.VRCoding, input);
             var obj = new T();
             serializer.DeserializeProperties(reader, obj);
             return obj;
         }
 
-        public static void Serialize<T>(Stream stream, TransferSyntax transferSyntax, T obj)
+        public static void Serialize<T>(TransferSyntax transferSyntax, Stream stream, T obj)
         {
             var serializer = GetSerializer<T>();
-            var output = new BinaryStreamWriter(stream, transferSyntax.ByteOrder);
-            var writer = new DicomStreamWriter(output, transferSyntax.VRCoding);
+            var output = new BinaryStreamWriter(transferSyntax.ByteOrder, stream);
+            var writer = new DicomStreamWriter(transferSyntax.VRCoding, output);
             serializer.SerializeProperties(writer, obj);
             output.Flush(FlushMode.Shallow);
         }

@@ -13,17 +13,17 @@ namespace MDSDK.Dicom.Serialization
 
         public DicomVRCoding VRCoding { get; init; }
 
-        public DicomStreamWriter(BinaryStreamWriter output, DicomVRCoding vrCoding)
+        public DicomStreamWriter(DicomVRCoding vrCoding, BinaryStreamWriter output)
         {
-            Output = output;
             VRCoding = vrCoding;
+            Output = output;
         }
 
         public Encoding SpecificCharsetEncoding { get; private set; }
 
         private DicomStreamWriter CreateNestedWriter()
         {
-            return new DicomStreamWriter(Output, VRCoding)
+            return new DicomStreamWriter(VRCoding, Output)
             {
                 SpecificCharsetEncoding = SpecificCharsetEncoding
             };
