@@ -57,7 +57,7 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             WriteValues(writer, stringValues);
         }
 
-        protected void ConvertAndWriteSingleValue<T>(DicomStreamWriter writer, Func<T, NumberFormatInfo, string> convert, T value)
+        internal void ConvertAndWriteSingleValue<T>(DicomStreamWriter writer, Func<T, NumberFormatInfo, string> convert, T value)
         {
             var stringValue = convert(value, NumberFormatInfo.InvariantInfo);
             WriteSingleValue(writer, stringValue);

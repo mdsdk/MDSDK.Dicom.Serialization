@@ -14,9 +14,13 @@ namespace MDSDK.Dicom.Serialization
 {
     public class DicomSerializer
     {
+        private static Type GetNonNullableType(Type type) => Nullable.GetUnderlyingType(type) ?? type;
+
         class PropertySerializer
         {
             public PropertyInfo Property { get; }
+
+            public Type NonNullablePropertyType { get; }
 
             public ValueRepresentation VR { get; }
 
@@ -33,6 +37,7 @@ namespace MDSDK.Dicom.Serialization
             public PropertySerializer(PropertyInfo property, ValueRepresentation vr, MethodInfo readValueMethod, MethodInfo writeValueMethod)
             {
                 Property = property;
+                NonNullablePropertyType = GetNonNullableType(property.PropertyType);
                 VR = vr;
                 ReadValueMethod = readValueMethod;
                 WriteValueMethod = writeValueMethod;
@@ -64,13 +69,13 @@ namespace MDSDK.Dicom.Serialization
                 };
 
                 var hasLightWeightValueLengthCalculationInterface = typeof(IHasLightWeightValueLengthCalculation<>).MakeGenericType(
-                    property.PropertyType);
+                    NonNullablePropertyType);
 
                 if (hasLightWeightValueLengthCalculationInterface.IsAssignableFrom(VR.GetType()))
                 {
                     var getUnpaddedValueLengthMethod = hasLightWeightValueLengthCalculationInterface.GetMethod(
                         nameof(IHasLightWeightValueLengthCalculation<object>.GetUnpaddedValueLength),
-                        new[] { property.PropertyType });
+                        new[] { NonNullablePropertyType });
 
                     GetSerializedPropertyLength = (object obj, DicomVRCoding vrCoding) =>
                     {
@@ -97,7 +102,9 @@ namespace MDSDK.Dicom.Serialization
         {
             var vrType = vr.GetType();
 
-            var singleValueInterface = typeof(ISingleValue<>).MakeGenericType(property.PropertyType);
+            var nonNullablePropertyType = GetNonNullableType(property.PropertyType);
+
+            var singleValueInterface = typeof(ISingleValue<>).MakeGenericType(nonNullablePropertyType);
             if (singleValueInterface.IsAssignableFrom(vrType))
             {
                 var readValueMethod = singleValueInterface.GetMethod(nameof(ISingleValue<object>.ReadValue));
@@ -106,9 +113,9 @@ namespace MDSDK.Dicom.Serialization
                 return true;
             }
 
-            if (property.PropertyType.IsArray)
+            if (nonNullablePropertyType.IsArray)
             {
-                var elementType = property.PropertyType.GetElementType();
+                var elementType = nonNullablePropertyType.GetElementType();
                 var multiValueInterface = typeof(IMultiValue<>).MakeGenericType(elementType);
                 if (multiValueInterface.IsAssignableFrom(vrType))
                 {
@@ -120,7 +127,7 @@ namespace MDSDK.Dicom.Serialization
             }
             else
             {
-                var multiValueInterface = typeof(IMultiValue<>).MakeGenericType(property.PropertyType);
+                var multiValueInterface = typeof(IMultiValue<>).MakeGenericType(nonNullablePropertyType);
                 if (multiValueInterface.IsAssignableFrom(vrType))
                 {
                     var readValueMethod = multiValueInterface.GetMethod(nameof(IMultiValue<object>.ReadSingleValue));
@@ -172,14 +179,16 @@ namespace MDSDK.Dicom.Serialization
 
         private PropertySerializer MakePropertySerializer(PropertyInfo property, DicomAttribute dicomAttribute)
         {
-            if (property.PropertyType.IsEnum)
+            var nonNullablePropertyType = GetNonNullableType(property.PropertyType);
+            
+            if (nonNullablePropertyType.IsEnum)
             {
-                return MakeEnumPropertySerializer(property, property.PropertyType, dicomAttribute);
+                return MakeEnumPropertySerializer(property, nonNullablePropertyType, dicomAttribute);
             }
 
-            if (property.PropertyType.IsArray)
+            if (nonNullablePropertyType.IsArray)
             {
-                var elementType = property.PropertyType.GetElementType();
+                var elementType = nonNullablePropertyType.GetElementType();
                 if (elementType.IsEnum)
                 {
                     return MakeEnumPropertySerializer(property, elementType, dicomAttribute);
@@ -230,6 +239,10 @@ namespace MDSDK.Dicom.Serialization
                 {
                     var propertyValue = propertySerializer.DeserializePropertyValue.Invoke(reader);
                     propertySerializer.Property.SetValue(obj, propertyValue);
+                }
+                else
+                {
+                    propertySerializer.Property.SetValue(obj, null); // assigns default value if property type is a value type
                 }
             }
         }

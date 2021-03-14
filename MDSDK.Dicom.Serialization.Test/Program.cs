@@ -43,13 +43,12 @@ namespace MDSDK.Dicom.Serialization.Examples
             {
                 using (var stream = OpenRead(relativePath))
                 {
-                    var dicomFile = new DicomFile();
-                    if (dicomFile.CanRead(stream, out DicomStreamReader datasetReader))
+                    if (DicomFileReader.TryCreate(stream, out DicomFileReader dicomFileReader))
                     {
-                        Console.WriteLine($"SOPClassUID = {dicomFile.SOPClassUID}");
-                        Console.WriteLine($"TransferSyntax = {dicomFile.TransferSyntax}");
+                        Console.WriteLine($"SOPClassUID = {dicomFileReader.MediaStorageSOPClassUID}");
+                        Console.WriteLine($"TransferSyntax = {dicomFileReader.TransferSyntax}");
 
-                        Console.WriteLine(JsonSerializer.Serialize(dicomFile.MetaInformation, new JsonSerializerOptions
+                        Console.WriteLine(JsonSerializer.Serialize(dicomFileReader.FileMetaInformation, new JsonSerializerOptions
                         {
                             WriteIndented = true
                         }));
@@ -59,7 +58,7 @@ namespace MDSDK.Dicom.Serialization.Examples
 
                         var dataset = new XElement("DicomDataset");
                         dataset.SetAttributeValue("Source", stream.Name);
-                        datasetReader.ToXml(dataset);
+                        dicomFileReader.DataSetReader.ToXml(dataset);
                         dataset.Save(xmlOutputPath);
                     }
                     else

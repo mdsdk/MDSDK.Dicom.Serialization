@@ -13,7 +13,7 @@ namespace MDSDK.Dicom.Serialization
     public class DicomStreamReader
     {
         public DicomVRCoding VRCoding { get; init; }
-        
+
         public BinaryStreamReader Input { get; init; }
 
         public DicomStreamReader(DicomVRCoding vrCoding, BinaryStreamReader input)
@@ -105,6 +105,13 @@ namespace MDSDK.Dicom.Serialization
             CurrentTag = DicomTag.Undefined;
         }
 
+        private void SkipValueWithUndefinedLength()
+        {
+            var sequenceReader = CreateNestedReader();
+            sequenceReader.SkipItemsOfSequenceWithUndefinedLength();
+            CurrentTag = DicomTag.Undefined;
+        }
+
         private void SkipValueWithDefinedLength()
         {
             Input.SkipBytes(ValueLength);
@@ -123,8 +130,7 @@ namespace MDSDK.Dicom.Serialization
             }
             else if (ValueLength == UndefinedLength)
             {
-                var sequenceReader = CreateNestedReader();
-                sequenceReader.SkipItemsOfSequenceWithUndefinedLength();
+                SkipValueWithUndefinedLength();
             }
             else
             {
