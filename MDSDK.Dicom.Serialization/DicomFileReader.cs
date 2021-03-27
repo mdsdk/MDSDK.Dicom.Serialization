@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
 using MDSDK.BinaryIO;
-using MDSDK.Dicom.Serialization.TransferSyntaxes;
 using System;
 using System.IO;
 using System.Linq;
@@ -15,7 +14,7 @@ namespace MDSDK.Dicom.Serialization
 
         public DicomUID MediaStorageSOPClassUID { get; private set; }
 
-        public TransferSyntax TransferSyntax { get; private set; }
+        public DicomTransferSyntax TransferSyntax { get; private set; }
 
         public DicomStreamReader DataSetReader { get; private set; }
 
@@ -52,22 +51,11 @@ namespace MDSDK.Dicom.Serialization
                 FileMetaInformation = FileMetaInformationSerializer.Deserialize(metaInformationReader);
             });
 
-            if (DicomUID.TryLookup(FileMetaInformation.MediaStorageSOPClassUID, out DicomUID sopClassUID))
-            {
-                MediaStorageSOPClassUID = sopClassUID;
-            }
+            MediaStorageSOPClassUID = new DicomUID(FileMetaInformation.MediaStorageSOPClassUID); ;
 
-            if (DicomTransferSyntax.TryLookup(FileMetaInformation.TransferSyntaxUID, out TransferSyntax transferSyntax))
-            {
-                TransferSyntax = transferSyntax;
-                input.ByteOrder = transferSyntax.ByteOrder;
-                DataSetReader = new DicomStreamReader(transferSyntax.VRCoding, input);
-            }
-            else
-            {
-                input.ByteOrder = ByteOrder.LittleEndian;
-                DataSetReader = new DicomStreamReader(DicomVRCoding.Explicit, input);
-            }
+            TransferSyntax = new DicomTransferSyntax(new DicomUID(FileMetaInformation.TransferSyntaxUID));
+            input.ByteOrder = TransferSyntax.ByteOrder;
+            DataSetReader = new DicomStreamReader(TransferSyntax.VRCoding, input);
 
             isValid = true;
         }

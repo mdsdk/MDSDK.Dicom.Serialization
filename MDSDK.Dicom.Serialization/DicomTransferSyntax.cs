@@ -1,35 +1,38 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
-using MDSDK.Dicom.Serialization.TransferSyntaxes;
+using MDSDK.BinaryIO;
 using System;
-using System.Collections.Generic;
 
 namespace MDSDK.Dicom.Serialization
 {
-    public static class DicomTransferSyntax
+    public class DicomTransferSyntax : IEquatable<DicomTransferSyntax>
     {
-        public static readonly ImplicitVRLittleEndian ImplicitVRLittleEndian = new();
-        public static readonly ExplicitVRLittleEndian ExplicitVRLittleEndian = new();
+        public DicomUID UID { get; }
 
-        private static readonly Dictionary<string, TransferSyntax> s_tsMap;
+        public DicomVRCoding VRCoding { get; }
 
-        static DicomTransferSyntax()
+        public ByteOrder ByteOrder { get; }
+
+        public DicomTransferSyntax(DicomUID uid)
         {
-            s_tsMap = new Dictionary<string, TransferSyntax>();
-
-            foreach (var field in typeof(DicomTransferSyntax).GetFields())
+            if (!uid.UID.StartsWith("1.2.840.10008.1.2"))
             {
-                if (typeof(TransferSyntax).IsAssignableFrom(field.FieldType))
-                {
-                    var transferSyntax = (TransferSyntax)field.GetValue(null);
-                    s_tsMap.Add(transferSyntax.DicomUID.UID, transferSyntax);
-                }
+                throw new ArgumentException("UID is not a DICOM transfer syntax UID");
             }
+            UID = uid;
+            VRCoding = (uid == DicomUID.ImplicitVRLittleEndian) ? DicomVRCoding.Implicit : DicomVRCoding.Explicit;
+            ByteOrder = (uid == DicomUID.Retired.ExplicitVRBigEndian) ? ByteOrder.BigEndian : ByteOrder.LittleEndian;
         }
 
-        public static bool TryLookup(string uid, out TransferSyntax transferSyntax)
-        {
-            return s_tsMap.TryGetValue(uid, out transferSyntax);
-        }
+        public bool Equals(DicomTransferSyntax other) => UID == other.UID;
+
+        public override bool Equals(object obj) => (obj is DicomTransferSyntax other) && Equals(other);
+
+        public override int GetHashCode() => UID.GetHashCode();
+
+        public override string ToString() => UID.ToString();
+
+        public static readonly DicomTransferSyntax ImplicitVRLittleEndian = new DicomTransferSyntax(DicomUID.ImplicitVRLittleEndian);
+        public static readonly DicomTransferSyntax ExplicitVRLittleEndian = new DicomTransferSyntax(DicomUID.ExplicitVRLittleEndian);
     }
 }

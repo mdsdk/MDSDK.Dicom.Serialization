@@ -9,19 +9,9 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
     {
         public UniqueIdentifier() : base("UI") { }
 
-        private static DicomUID ToDicomUID(string uid, NumberFormatInfo _)
-        {
-            if (!DicomUID.TryLookup(uid, out DicomUID dicomUID))
-            {
-                throw new Exception($"Unknown DICOM UID {uid}");
-            }
-            return dicomUID;
-        }
+        private static DicomUID ToDicomUID(string uid, NumberFormatInfo _) => new DicomUID(uid);
 
-        private static string ToString(DicomUID dicomUID, NumberFormatInfo _)
-        {
-            return dicomUID.UID;
-        }
+        private static string ToString(DicomUID dicomUID, NumberFormatInfo _) => dicomUID.UID;
 
         DicomUID[] IMultiValue<DicomUID>.ReadValues(DicomStreamReader reader) => ReadAndConvertValues(reader, ToDicomUID);
 

@@ -1,11 +1,5 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
-using MDSDK.BinaryIO;
-using MDSDK.Dicom.Serialization.TransferSyntaxes;
-using System;
-using System.IO;
-using System.Linq;
-
 namespace MDSDK.Dicom.Serialization
 {
     static class DicomFileFormat

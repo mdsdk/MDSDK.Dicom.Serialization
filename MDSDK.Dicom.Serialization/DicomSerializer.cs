@@ -2,7 +2,6 @@
 
 using MDSDK.BinaryIO;
 using MDSDK.Dicom.Serialization.ValueRepresentations;
-using MDSDK.Dicom.Serialization.TransferSyntaxes;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -318,7 +317,7 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
-        public static T Deserialize<T>(TransferSyntax transferSyntax, Stream stream) where T : new()
+        public static T Deserialize<T>(DicomTransferSyntax transferSyntax, Stream stream) where T : new()
         {
             var serializer = GetSerializer<T>();
             var input = new BinaryStreamReader(transferSyntax.ByteOrder, stream);
@@ -328,7 +327,7 @@ namespace MDSDK.Dicom.Serialization
             return obj;
         }
 
-        public static void Serialize<T>(TransferSyntax transferSyntax, Stream stream, T obj)
+        public static void Serialize<T>(DicomTransferSyntax transferSyntax, Stream stream, T obj)
         {
             var serializer = GetSerializer<T>();
             var output = new BinaryStreamWriter(transferSyntax.ByteOrder, stream);

@@ -5,44 +5,45 @@ using System.Collections.Generic;
 
 namespace MDSDK.Dicom.Serialization
 {
-    public class DicomUID
+    public readonly struct DicomUID : IEquatable<DicomUID>
     {
-        private static Dictionary<string, DicomUID> s_uidMap;
-
-        static DicomUID()
-        {
-            s_uidMap = new Dictionary<string, DicomUID>();
-
-            foreach (var field in typeof(DicomUID).GetFields())
-            {
-                if (typeof(DicomUID).IsAssignableFrom(field.FieldType))
-                {
-                    var dicomUID = (DicomUID)field.GetValue(null);
-                    s_uidMap.Add(dicomUID.UID, dicomUID);
-                }
-            }
-        }
-
-        public static bool TryLookup(string uid, out DicomUID dicomUID)
-        {
-            return s_uidMap.TryGetValue(uid, out dicomUID);
-        }
+        private static Dictionary<string, string> s_names = new();
 
         public string UID { get; }
-
-        public string Name { get; }
 
         private DicomUID(string uid, string name)
         {
             UID = uid;
-            Name = name;
+            s_names.Add(uid, name);
         }
+
+        public string Name => s_names.TryGetValue(UID, out string name) ? name : "<Unknown>";
 
         public override string ToString() => $"{Name} ({UID})";
 
+        public DicomUID(string uid)
+        {
+            UID = uid;
+        }
+
+        public bool Equals(DicomUID other) => UID == other.UID;
+
+        public override bool Equals(object obj) => (obj is DicomUID other) && Equals(other);
+
+        public override int GetHashCode() => UID.GetHashCode();
+
+        public static bool operator ==(DicomUID a, DicomUID b) => a.UID == b.UID;
+
+        public static bool operator !=(DicomUID a, DicomUID b) => a.UID != b.UID;
+
+        internal static class Retired
+        {
+            public static readonly DicomUID ExplicitVRBigEndian = new DicomUID("1.2.840.10008.1.​2.​2", "Explicit VR Big Endian (Retired)");
+        }
+
         #region SOP Class
 
-        public static readonly DicomUID VerificationSOPClass = new DicomUID("1.2.840.10008.1.1", "Verification SOP Class");
+            public static readonly DicomUID VerificationSOPClass = new DicomUID("1.2.840.10008.1.1", "Verification SOP Class");
         public static readonly DicomUID MediaStorageDirectoryStorage = new DicomUID("1.2.840.10008.1.3.10", "Media Storage Directory Storage");
         public static readonly DicomUID StorageCommitmentPushModelSOPClass = new DicomUID("1.2.840.10008.1.20.1", "Storage Commitment Push Model SOP Class");
         public static readonly DicomUID ProceduralEventLoggingSOPClass = new DicomUID("1.2.840.10008.1.40", "Procedural Event Logging SOP Class");
