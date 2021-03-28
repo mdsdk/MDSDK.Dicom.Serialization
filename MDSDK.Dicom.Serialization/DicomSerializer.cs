@@ -93,15 +93,24 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
-        private readonly Type _dicomObjectType;
+        public Type DicomObjectType { get; }
 
         private readonly SortedList<DicomTag, PropertySerializer> _propertySerializers = new();
 
         private static bool TryMakePropertySerializer(PropertyInfo property, ValueRepresentation vr, out PropertySerializer propertySerializer)
         {
-            var vrType = vr.GetType();
-
             var nonNullablePropertyType = GetNonNullableType(property.PropertyType);
+            
+            if (vr is Sequence<object>)
+            {
+                if (nonNullablePropertyType.IsGenericType && nonNullablePropertyType.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    var itemType = nonNullablePropertyType.GetGenericArguments()[0];
+                    vr = (ValueRepresentation)Activator.CreateInstance(typeof(Sequence<>).MakeGenericType(itemType));
+                }
+            }
+
+            var vrType = vr.GetType();
 
             var singleValueInterface = typeof(ISingleValue<>).MakeGenericType(nonNullablePropertyType);
             if (singleValueInterface.IsAssignableFrom(vrType))
@@ -215,14 +224,17 @@ namespace MDSDK.Dicom.Serialization
 
         internal DicomSerializer(Type dicomObjectType)
         {
-            _dicomObjectType = dicomObjectType;
+            DicomObjectType = dicomObjectType;
+        }
 
-            foreach (var property in dicomObjectType.GetProperties())
+        internal void Initialize()
+        {
+            foreach (var property in DicomObjectType.GetProperties())
             {
                 var dicomAttributeField = typeof(DicomAttribute).GetField(property.Name, BindingFlags.Public | BindingFlags.Static);
                 if (dicomAttributeField == null)
                 {
-                    throw new NotSupportedException($"Property {property.Name} in {dicomObjectType.Name} is not the keyword of a known DICOM attribute");
+                    throw new NotSupportedException($"Property {property.Name} in {DicomObjectType.Name} is not the keyword of a known DICOM attribute");
                 }
                 var dicomAttribute = (DicomAttribute)dicomAttributeField.GetValue(null);
                 var propertySerializer = MakePropertySerializer(property, dicomAttribute);
@@ -261,7 +273,7 @@ namespace MDSDK.Dicom.Serialization
 
         public object Deserialize(DicomStreamReader reader)
         {
-            var dicomObject = Activator.CreateInstance(_dicomObjectType);
+            var dicomObject = Activator.CreateInstance(DicomObjectType);
             DeserializeProperties(reader, dicomObject);
             return dicomObject;
         }
@@ -312,6 +324,7 @@ namespace MDSDK.Dicom.Serialization
                 {
                     serializer = new DicomSerializer<T>();
                     s_serializers[typeof(T)] = serializer;
+                    serializer.Initialize();
                 }
                 return (DicomSerializer<T>)serializer;
             }

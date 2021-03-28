@@ -118,6 +118,8 @@ namespace MDSDK.Dicom.Serialization
             CurrentTag = DicomTag.Undefined;
         }
 
+        private static bool IsLegacyGroupLengthTag(DicomTag tag) => tag.ElementNumber == 0x000;
+
         private void SkipValue()
         {
             if (CurrentTag == DicomTag.SpecificCharacterSet)
@@ -127,6 +129,10 @@ namespace MDSDK.Dicom.Serialization
                 {
                     SpecificCharsetEncoding = DicomCharacterSet.GetEncoding(values[0]);
                 }
+            }
+            else if ((CurrentTag.GroupNumber == DicomTag.PixelDataGroupNumber) && !IsLegacyGroupLengthTag(CurrentTag))
+            {
+                throw new IOException($"Value of {CurrentTag} tag in pixel data group must be processed and may not be skipped");
             }
             else if (ValueLength == UndefinedLength)
             {
@@ -210,7 +216,12 @@ namespace MDSDK.Dicom.Serialization
             }
             else
             {
-                item = Input.Read<T>(ValueLength, () => itemDeserializer.Invoke(itemReader));
+                item = Input.Read<T>(ValueLength, () =>
+                {
+                    var result = itemDeserializer.Invoke(itemReader);
+                    Input.SkipRemainingBytes();
+                    return result;
+                });
             }
             CurrentTag = DicomTag.Undefined;
             return item;
@@ -242,6 +253,23 @@ namespace MDSDK.Dicom.Serialization
             EndReadValue();
         }
 
+        public bool SkipToPixelData(out uint valueLength)
+        {
+            // Note that TrySeek will throw if the stream contains any tag in the pixel data group (0x7FE0) before the PixelData tag.
+            // This to prevent accidental mis-interpretation of the pixel data.
+
+            if (TrySeek(DicomTag.PixelData))
+            {
+                valueLength = ValueLength;
+                return true;
+            }
+            else
+            {
+                valueLength = 0;
+                return false;
+            }
+        }
+
         public void ToXml(XElement dataSet)
         {
             Debug.Assert(CurrentTag == DicomTag.Undefined);
@@ -250,7 +278,7 @@ namespace MDSDK.Dicom.Serialization
             {
                 ReadTagVRLength();
 
-                if (!CurrentTag.IsBeforePixelData)
+                if (CurrentTag.GroupNumber >= DicomTag.PixelDataGroupNumber)
                 {
                     break;
                 }

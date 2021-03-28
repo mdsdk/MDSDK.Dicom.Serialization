@@ -49,21 +49,28 @@ namespace MDSDK.Dicom.Serialization
             output.Write<UInt16>(GroupNumber);
             output.Write<UInt16>(ElementNumber);
         }
+        
 
         internal static readonly DicomTag CommandGroupLength = new DicomTag(0x0000, 0x0000);
         internal static readonly DicomTag SpecificCharacterSet = new DicomTag(0x0008, 0x0005);
         internal static readonly DicomTag Item = new DicomTag(0xFFFE, 0xE000);
         internal static readonly DicomTag ItemDelimitationItem = new DicomTag(0xFFFE, 0xE00D);
         internal static readonly DicomTag SequenceDelimitationItem = new DicomTag(0xFFFE, 0xE0DD);
-        
+
         internal static readonly DicomTag Undefined = new DicomTag(0xFFFF, 0xFFFF);
 
         internal bool IsDelimitationItem => (this == ItemDelimitationItem) || (this == SequenceDelimitationItem);
 
         internal bool HasVR => (this != Item) && !IsDelimitationItem;
 
-        internal bool IsBeforePixelData => GroupNumber < 0x7FE0;
-
         internal bool IsPrivateTag => (GroupNumber & 1) != 0;
+
+        internal const ushort PixelDataGroupNumber = 0x7FE0;
+
+        internal static readonly DicomTag ExtendedOffsetTable = new DicomTag(PixelDataGroupNumber, 0x001);
+        internal static readonly DicomTag ExtendedOffsetTableLength = new DicomTag(PixelDataGroupNumber, 0x002);
+        internal static readonly DicomTag FloatPixelData = new DicomTag(PixelDataGroupNumber, 0x008);
+        internal static readonly DicomTag DoubleFloatPixelData = new DicomTag(PixelDataGroupNumber, 0x009);
+        internal static readonly DicomTag PixelData = new DicomTag(PixelDataGroupNumber, 0x0010);
     }
 }
