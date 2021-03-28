@@ -7,7 +7,7 @@ namespace MDSDK.Dicom.Serialization
 {
     public readonly struct DicomUID : IEquatable<DicomUID>
     {
-        private static Dictionary<string, string> s_names = new();
+        private static readonly Dictionary<string, string> s_names = new();
 
         public string UID { get; }
 
@@ -19,7 +19,7 @@ namespace MDSDK.Dicom.Serialization
 
         public string Name => s_names.TryGetValue(UID, out string name) ? name : "<Unknown>";
 
-        public override string ToString() => $"{Name} ({UID})";
+        public override string ToString() => (UID == null) ? "null" : $"{Name} ({UID})";
 
         public DicomUID(string uid)
         {

@@ -17,7 +17,7 @@ namespace MDSDK.Dicom.Serialization
 
         class PropertySerializer
         {
-            public PropertyInfo Property { get; }
+            public DicomPropertyInfo DicomProperty { get; }
 
             public Type NonNullablePropertyType { get; }
 
@@ -33,10 +33,10 @@ namespace MDSDK.Dicom.Serialization
 
             public Func<object, DicomVRCoding, long> GetSerializedPropertyLength { get; }
 
-            public PropertySerializer(PropertyInfo property, ValueRepresentation vr, MethodInfo readValueMethod, MethodInfo writeValueMethod)
+            public PropertySerializer(DicomPropertyInfo dicomProperty, ValueRepresentation vr, MethodInfo readValueMethod, MethodInfo writeValueMethod)
             {
-                Property = property;
-                NonNullablePropertyType = GetNonNullableType(property.PropertyType);
+                DicomProperty = dicomProperty;
+                NonNullablePropertyType = GetNonNullableType(dicomProperty.PropertyType);
                 VR = vr;
                 ReadValueMethod = readValueMethod;
                 WriteValueMethod = writeValueMethod;
@@ -50,7 +50,7 @@ namespace MDSDK.Dicom.Serialization
                     catch (Exception error)
                     {
                         var rootCause = error.GetBaseException();
-                        throw new Exception($"Error deserializing {property} using VR {VR}: {rootCause.Message}", rootCause);
+                        throw new Exception($"Error deserializing {dicomProperty} using VR {VR}: {rootCause.Message}", rootCause);
                     }
                 };
 
@@ -63,7 +63,7 @@ namespace MDSDK.Dicom.Serialization
                     catch (Exception error)
                     {
                         var rootCause = error.GetBaseException();
-                        throw new Exception($"Error serializing {property} using VR {VR}: {rootCause.Message}", rootCause);
+                        throw new Exception($"Error serializing {dicomProperty} using VR {VR}: {rootCause.Message}", rootCause);
                     }
                 };
 
@@ -78,7 +78,7 @@ namespace MDSDK.Dicom.Serialization
 
                     GetSerializedPropertyLength = (object obj, DicomVRCoding vrCoding) =>
                     {
-                        var value = property.GetValue(obj);
+                        var value = dicomProperty.GetValue(obj);
                         if (value == null)
                         {
                             return 0;
@@ -97,9 +97,10 @@ namespace MDSDK.Dicom.Serialization
 
         private readonly SortedList<DicomTag, PropertySerializer> _propertySerializers = new();
 
-        private static bool TryMakePropertySerializer(PropertyInfo property, ValueRepresentation vr, out PropertySerializer propertySerializer)
+        private static bool TryMakePropertySerializer(DicomPropertyInfo dicomProperty, ValueRepresentation vr, 
+            out PropertySerializer propertySerializer)
         {
-            var nonNullablePropertyType = GetNonNullableType(property.PropertyType);
+            var nonNullablePropertyType = GetNonNullableType(dicomProperty.PropertyType);
             
             if (vr is Sequence<object>)
             {
@@ -117,7 +118,7 @@ namespace MDSDK.Dicom.Serialization
             {
                 var readValueMethod = singleValueInterface.GetMethod(nameof(ISingleValue<object>.ReadValue));
                 var writeValueMethod = singleValueInterface.GetMethod(nameof(ISingleValue<object>.WriteValue));
-                propertySerializer = new PropertySerializer(property, vr, readValueMethod, writeValueMethod);
+                propertySerializer = new PropertySerializer(dicomProperty, vr, readValueMethod, writeValueMethod);
                 return true;
             }
 
@@ -129,7 +130,7 @@ namespace MDSDK.Dicom.Serialization
                 {
                     var readValueMethod = multiValueInterface.GetMethod(nameof(IMultiValue<object>.ReadValues));
                     var writeValueMethod = multiValueInterface.GetMethod(nameof(IMultiValue<object>.WriteValues));
-                    propertySerializer = new PropertySerializer(property, vr, readValueMethod, writeValueMethod);
+                    propertySerializer = new PropertySerializer(dicomProperty, vr, readValueMethod, writeValueMethod);
                     return true;
                 }
             }
@@ -140,7 +141,7 @@ namespace MDSDK.Dicom.Serialization
                 {
                     var readValueMethod = multiValueInterface.GetMethod(nameof(IMultiValue<object>.ReadSingleValue));
                     var writeValueMethod = multiValueInterface.GetMethod(nameof(IMultiValue<object>.WriteSingleValue));
-                    propertySerializer = new PropertySerializer(property, vr, readValueMethod, writeValueMethod);
+                    propertySerializer = new PropertySerializer(dicomProperty, vr, readValueMethod, writeValueMethod);
                     return true;
                 }
             }
@@ -149,9 +150,11 @@ namespace MDSDK.Dicom.Serialization
             return false;
         }
 
-        private PropertySerializer MakeEnumPropertySerializer(PropertyInfo property, Type enumType, DicomAttribute dicomAttribute)
+        private PropertySerializer MakeEnumPropertySerializer(DicomPropertyInfo dicomProperty, Type enumType)
         {
             Type genericEnumVRType = null;
+
+            var dicomAttribute = dicomProperty.DicomAttribute;
 
             if (dicomAttribute.VRs.Length == 1)
             {
@@ -171,27 +174,27 @@ namespace MDSDK.Dicom.Serialization
 
             if (genericEnumVRType == null)
             {
-                throw new NotSupportedException($"Enum property {property} must map to single-VR DICOM attribute with VR US or CS");
+                throw new NotSupportedException($"Enum property {dicomProperty} must map to single-VR DICOM attribute with VR US or CS");
             }
 
             var enumVRType = genericEnumVRType.MakeGenericType(enumType);
             var enumVR = (ValueRepresentation)Activator.CreateInstance(enumVRType);
 
-            if (!TryMakePropertySerializer(property, enumVR, out PropertySerializer propertySerializer))
+            if (!TryMakePropertySerializer(dicomProperty, enumVR, out PropertySerializer propertySerializer))
             {
-                throw new Exception($"Unexpected failure creating enum property serializer for {property}");
+                throw new Exception($"Unexpected failure creating enum property serializer for {dicomProperty}");
             }
 
             return propertySerializer;
         }
 
-        private PropertySerializer MakePropertySerializer(PropertyInfo property, DicomAttribute dicomAttribute)
+        private PropertySerializer MakePropertySerializer(DicomPropertyInfo dicomProperty)
         {
-            var nonNullablePropertyType = GetNonNullableType(property.PropertyType);
+            var nonNullablePropertyType = GetNonNullableType(dicomProperty.PropertyType);
             
             if (nonNullablePropertyType.IsEnum)
             {
-                return MakeEnumPropertySerializer(property, nonNullablePropertyType, dicomAttribute);
+                return MakeEnumPropertySerializer(dicomProperty, nonNullablePropertyType);
             }
 
             if (nonNullablePropertyType.IsArray)
@@ -199,13 +202,15 @@ namespace MDSDK.Dicom.Serialization
                 var elementType = nonNullablePropertyType.GetElementType();
                 if (elementType.IsEnum)
                 {
-                    return MakeEnumPropertySerializer(property, elementType, dicomAttribute);
+                    return MakeEnumPropertySerializer(dicomProperty, elementType);
                 }
             }
 
+            var dicomAttribute = dicomProperty.DicomAttribute;
+
             foreach (var standardDefinedVR in dicomAttribute.VRs)
             {
-                if (TryMakePropertySerializer(property, standardDefinedVR, out PropertySerializer propertySerializer))
+                if (TryMakePropertySerializer(dicomProperty, standardDefinedVR, out PropertySerializer propertySerializer))
                 {
                     return propertySerializer;
                 }
@@ -213,13 +218,13 @@ namespace MDSDK.Dicom.Serialization
 
             if (dicomAttribute.TryGetExtendedVR(out ValueRepresentation extendedVR))
             {
-                if (TryMakePropertySerializer(property, extendedVR, out PropertySerializer propertySerializer))
+                if (TryMakePropertySerializer(dicomProperty, extendedVR, out PropertySerializer propertySerializer))
                 {
                     return propertySerializer;
                 }
             }
 
-            throw new Exception($"No VR found for serializing {property}");
+            throw new Exception($"No VR found for serializing {dicomProperty}");
         }
 
         internal DicomSerializer(Type dicomObjectType)
@@ -229,16 +234,10 @@ namespace MDSDK.Dicom.Serialization
 
         internal void Initialize()
         {
-            foreach (var property in DicomObjectType.GetProperties())
+            foreach (var dicomProperty in DicomPropertyInfo.GetDicomProperties(null, DicomObjectType))
             {
-                var dicomAttributeField = typeof(DicomAttribute).GetField(property.Name, BindingFlags.Public | BindingFlags.Static);
-                if (dicomAttributeField == null)
-                {
-                    throw new NotSupportedException($"Property {property.Name} in {DicomObjectType.Name} is not the keyword of a known DICOM attribute");
-                }
-                var dicomAttribute = (DicomAttribute)dicomAttributeField.GetValue(null);
-                var propertySerializer = MakePropertySerializer(property, dicomAttribute);
-                _propertySerializers.Add(dicomAttribute.Tag, propertySerializer);
+                var propertySerializer = MakePropertySerializer(dicomProperty);
+                _propertySerializers.Add(dicomProperty.DicomAttribute.Tag, propertySerializer);
             }
         }
 
@@ -249,11 +248,11 @@ namespace MDSDK.Dicom.Serialization
                 if (reader.TrySeek(tag))
                 {
                     var propertyValue = propertySerializer.DeserializePropertyValue.Invoke(reader);
-                    propertySerializer.Property.SetValue(obj, propertyValue);
+                    propertySerializer.DicomProperty.SetValue(obj, propertyValue);
                 }
                 else
                 {
-                    propertySerializer.Property.SetValue(obj, null); // assigns default value if property type is a value type
+                    propertySerializer.DicomProperty.SetValue(obj, null); // assigns default value if property type is a value type
                 }
             }
         }
@@ -262,7 +261,7 @@ namespace MDSDK.Dicom.Serialization
         {
             foreach (var (tag, propertySerializer) in _propertySerializers)
             {
-                var propertyValue = propertySerializer.Property.GetValue(obj);
+                var propertyValue = propertySerializer.DicomProperty.GetValue(obj);
                 if (propertyValue != null)
                 {
                     writer.WriteTag(tag);
