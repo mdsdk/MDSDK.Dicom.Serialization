@@ -3,6 +3,7 @@
 using MDSDK.BinaryIO;
 using MDSDK.Dicom.Serialization.ValueRepresentations;
 using System;
+using System.Buffers;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -267,6 +268,124 @@ namespace MDSDK.Dicom.Serialization
             {
                 valueLength = 0;
                 return false;
+            }
+        }
+
+        private void GetEncapsulatedPixelDataFramePositionsUsingBasicOffsetTable(long[] framePositions)
+        {
+            if ((ValueLength % 4) != 0)
+            {
+                throw new Exception($"Invalid basic offset table length {ValueLength}");
+            }
+
+            var numberOfFrames = ValueLength / 4;
+            if (numberOfFrames != framePositions.Length)
+            {
+                throw new Exception($"Expected {framePositions.Length} frame offsets in basic offset table but got {numberOfFrames}");
+            }
+
+            var basePosition = Input.Position;
+
+            for (var i = 0; i < numberOfFrames; i++)
+            {
+                var offset = Input.Read<UInt32>();
+                framePositions[i] = basePosition + offset;
+            }
+        }
+
+        private void GetEncapsulatedPixelDataFramePositionsWithoutBasicOffsetTable(long[] framePositions)
+        {
+            var basePosition = Input.Position;
+
+            if (framePositions.Length == 1)
+            {
+                framePositions[0] = basePosition;
+            }
+            else
+            {
+                throw new NotImplementedException("TODO");
+            }
+        }
+
+        public void ReadEncapsulatedPixelDataFramePositions(long[] framePositions)
+        {
+            if (!SkipToPixelData(out uint valueLength))
+            {
+                throw new Exception($"Missing PixelData");
+            }
+
+            if (valueLength != uint.MaxValue)
+            {
+                throw new Exception($"Expected encapsulated pixel data length {uint.MaxValue} but got {valueLength}");
+            }
+
+            EndReadValue();
+
+            if (!TryReadItemTagOfSequenceWithUndefinedLength())
+            {
+                throw new Exception($"Expected {DicomTag.Item} for Basic Offset Table but got {CurrentTag}");
+            }
+
+            if (ValueLength > 0)
+            {
+                GetEncapsulatedPixelDataFramePositionsUsingBasicOffsetTable(framePositions);
+                EndReadValue();
+            }
+            else
+            {
+                EndReadValue();
+                GetEncapsulatedPixelDataFramePositionsWithoutBasicOffsetTable(framePositions);
+            }
+        }
+
+        public void ReadEncapsulatedPixelDataFrame(Action<BinaryStreamReader> readFrame)
+        {
+            if (!TryReadItemTagOfSequenceWithUndefinedLength())
+            {
+                throw new Exception($"Expected fragment {DicomTag.Item} but got {CurrentTag}");
+            }
+
+            if (ValueLength == UndefinedLength)
+            {
+                throw new Exception($"Fragment {DicomTag.Item} may not have undefined length");
+            }
+
+            if (ValueLength > Input.BytesRemaining)
+            {
+                throw new Exception($"Fragment {DicomTag.Item} length exceeds input");
+            }
+
+            if (ValueLength == Input.BytesRemaining)
+            {
+                Input.Read(ValueLength, () => readFrame(Input));
+            }
+            else
+            {
+                if (Input.BytesRemaining > int.MaxValue)
+                {
+                    throw new NotSupportedException($"Multi-fragment frame length {Input.BytesRemaining} not supported");
+                }
+
+                var buffer = ArrayPool<byte>.Shared.Rent((int)Input.BytesRemaining);
+                try
+                {
+                    var n = 0;
+                    do
+                    {
+                        var fragmentLength = checked((int)ValueLength);
+                        Input.ReadAll(buffer.AsSpan(n, fragmentLength));
+                        EndReadValue();
+                        n += fragmentLength;
+                    }
+                    while (TryReadItemTagOfSequenceWithUndefinedLength());
+
+                    var bufferReader = new BinaryStreamReader(Input.ByteOrder, buffer, n);
+                    readFrame.Invoke(bufferReader);
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
+                }
             }
         }
 
