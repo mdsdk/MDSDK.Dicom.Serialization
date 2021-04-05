@@ -391,6 +391,11 @@ namespace MDSDK.Dicom.Serialization
 
         public void ToXml(XElement dataSet)
         {
+            ToXml(dataSet, tag => true);
+        }
+
+        public void ToXml(XElement dataSet, Func<DicomTag, bool> filter)
+        {
             Debug.Assert(CurrentTag == DicomTag.Undefined);
 
             while (!Input.AtEnd)
@@ -402,42 +407,49 @@ namespace MDSDK.Dicom.Serialization
                     break;
                 }
 
-                DicomAttribute.TryLookup(CurrentTag, out DicomAttribute attribute);
-
-                var dataElementName = (attribute == null)
-                    ? $"{(CurrentTag.IsPrivateTag ? 'P' : 'U')}{CurrentTag.GroupNumber:X4}.{CurrentTag.ElementNumber:X4}"
-                    : attribute.Keyword;
-
-                var dataElement = new XElement(dataElementName);
-                dataSet.Add(dataElement);
-
-                var vr = ExplicitVR ?? attribute?.ImplicitVR;
-                if (vr == null)
+                if (!filter(CurrentTag))
                 {
-                    dataElement.SetAttributeValue("Comment", "Skipped (Cannot determine VR)");
                     SkipValue();
                 }
                 else
                 {
-                    if (vr == DicomVR.SQ)
-                    {
-                        static XElement DeserializeItemXml(DicomStreamReader itemReader)
-                        {
-                            var itemDataSet = new XElement(DicomAttribute.Item.Keyword);
-                            itemReader.ToXml(itemDataSet);
-                            return itemDataSet;
-                        }
+                    DicomAttribute.TryLookup(CurrentTag, out DicomAttribute attribute);
 
-                        ReadSequenceItems(DeserializeItemXml, dataElement.Add);
-                    }
-                    else if (ValueLength == UndefinedLength)
+                    var dataElementName = (attribute == null)
+                        ? $"{(CurrentTag.IsPrivate ? 'P' : 'U')}{CurrentTag.GroupNumber:X4}.{CurrentTag.ElementNumber:X4}"
+                        : attribute.Keyword;
+
+                    var dataElement = new XElement(dataElementName);
+                    dataSet.Add(dataElement);
+
+                    var vr = ExplicitVR ?? attribute?.ImplicitVR;
+                    if (vr == null)
                     {
-                        dataElement.SetAttributeValue("Comment", "Skipped (UndefinedLength)");
-                        SkipItemsOfSequenceWithUndefinedLength();
+                        dataElement.SetAttributeValue("Comment", "Skipped (Cannot determine VR)");
+                        SkipValue();
                     }
                     else
                     {
-                        dataElement.Value = vr.ToString(this);
+                        if (vr == DicomVR.SQ)
+                        {
+                            static XElement DeserializeItemXml(DicomStreamReader itemReader)
+                            {
+                                var itemDataSet = new XElement(DicomAttribute.Item.Keyword);
+                                itemReader.ToXml(itemDataSet);
+                                return itemDataSet;
+                            }
+
+                            ReadSequenceItems(DeserializeItemXml, dataElement.Add);
+                        }
+                        else if (ValueLength == UndefinedLength)
+                        {
+                            dataElement.SetAttributeValue("Comment", "Skipped (UndefinedLength)");
+                            SkipItemsOfSequenceWithUndefinedLength();
+                        }
+                        else
+                        {
+                            dataElement.Value = vr.ToString(this);
+                        }
                     }
                 }
             }

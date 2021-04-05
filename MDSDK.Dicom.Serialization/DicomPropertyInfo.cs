@@ -29,7 +29,7 @@ namespace MDSDK.Dicom.Serialization
                 path = $"{parent.Property.Name}.{path}";
                 parent = parent.Parent;
             }
-            return $"{path}{Property}";
+            return $"{Property.PropertyType} {path}{Property.Name}";
         }
 
         private object GetPropertyValue(PropertyInfo property, object obj, bool createDefaultIfNull)
@@ -94,7 +94,7 @@ namespace MDSDK.Dicom.Serialization
                     }
                     if (count == 0)
                     {
-                        throw new NotSupportedException($"Property {property.Name} in {type.Name} is not the keyword of a known DICOM attribute");
+                        throw new NotSupportedException($"{dicomProperty} is not a known DICOM attribute");
                     }
                 }
             }

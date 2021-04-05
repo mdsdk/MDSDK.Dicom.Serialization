@@ -18,6 +18,8 @@ namespace MDSDK.Dicom.Serialization
             _value = (uint)((groupNumber << 16) | elementNumber);
         }
 
+        public bool IsPrivate => (GroupNumber & 1) != 0;
+
         public bool Equals(DicomTag other) => _value == other._value;
 
         public int CompareTo(DicomTag other) => _value.CompareTo(other._value);
@@ -48,8 +50,7 @@ namespace MDSDK.Dicom.Serialization
         {
             output.Write<UInt16>(GroupNumber);
             output.Write<UInt16>(ElementNumber);
-        }
-        
+        }        
 
         internal static readonly DicomTag CommandGroupLength = new DicomTag(0x0000, 0x0000);
         internal static readonly DicomTag SpecificCharacterSet = new DicomTag(0x0008, 0x0005);
@@ -62,8 +63,6 @@ namespace MDSDK.Dicom.Serialization
         internal bool IsDelimitationItem => (this == ItemDelimitationItem) || (this == SequenceDelimitationItem);
 
         internal bool HasVR => (this != Item) && !IsDelimitationItem;
-
-        internal bool IsPrivateTag => (GroupNumber & 1) != 0;
 
         internal const ushort PixelDataGroupNumber = 0x7FE0;
 
