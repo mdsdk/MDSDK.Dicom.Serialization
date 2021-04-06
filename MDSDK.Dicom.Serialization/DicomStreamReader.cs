@@ -388,7 +388,7 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
-        public void ReadDataSet<TDataSet>(TDataSet dataSet, DicomDataConsumer<TDataSet> consumer) 
+        public void ReadDataSet<TDataSet>(TDataSet dataSet, DicomDataConsumer<TDataSet> consumer)
         {
             Debug.Assert(CurrentTag == DicomTag.Undefined);
 
@@ -401,39 +401,46 @@ namespace MDSDK.Dicom.Serialization
                     break;
                 }
 
-                DicomAttribute.TryLookup(CurrentTag, out DicomAttribute attribute);
-
-                var vr = ExplicitVR ?? attribute?.ImplicitVR;
-                if (vr == null)
+                if (!consumer.Include(CurrentTag))
                 {
-                    consumer.SkippedValueWithUnknownVR(dataSet, CurrentTag, attribute);
                     SkipValue();
                 }
                 else
                 {
-                    if (vr == DicomVR.SQ)
-                    {
-                        TDataSet ConsumeItem(DicomStreamReader itemReader)
-                        {
-                            var itemDataSet = consumer.CreateItem();
-                            itemReader.ReadDataSet(itemDataSet, consumer);
-                            return itemDataSet;
-                        }
+                    DicomAttribute.TryLookup(CurrentTag, out DicomAttribute attribute);
 
-                        using (var sequenceItemConsumer = consumer.CreateSequenceItemConsumer(dataSet, CurrentTag, attribute))
-                        {
-                            ReadSequenceItems(ConsumeItem, sequenceItemConsumer.AddItem);
-                        }
-                    }
-                    else if (ValueLength == UndefinedLength)
+                    var vr = ExplicitVR ?? attribute?.ImplicitVR;
+                    if (vr == null)
                     {
-                        consumer.SkippedValueWithUndefinedLength(dataSet, CurrentTag, attribute);
-                        SkipItemsOfSequenceWithUndefinedLength();
+                        consumer.SkippedValueWithUnknownVR(dataSet, CurrentTag, attribute);
+                        SkipValue();
                     }
                     else
                     {
-                        var value = vr.GetValue(this);
-                        consumer.ConsumeValue(dataSet, CurrentTag, attribute, value);
+                        if (vr == DicomVR.SQ)
+                        {
+                            TDataSet ConsumeItem(DicomStreamReader itemReader)
+                            {
+                                var itemDataSet = consumer.CreateItem();
+                                itemReader.ReadDataSet(itemDataSet, consumer);
+                                return itemDataSet;
+                            }
+
+                            using (var sequenceItemConsumer = consumer.CreateSequenceItemConsumer(dataSet, CurrentTag, attribute))
+                            {
+                                ReadSequenceItems(ConsumeItem, sequenceItemConsumer.AddItem);
+                            }
+                        }
+                        else if (ValueLength == UndefinedLength)
+                        {
+                            consumer.SkippedValueWithUndefinedLength(dataSet, CurrentTag, attribute);
+                            SkipItemsOfSequenceWithUndefinedLength();
+                        }
+                        else
+                        {
+                            var value = vr.GetValue(this);
+                            consumer.ConsumeValue(dataSet, CurrentTag, attribute, value);
+                        }
                     }
                 }
             }

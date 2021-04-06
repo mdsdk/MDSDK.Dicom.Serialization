@@ -11,6 +11,8 @@ namespace MDSDK.Dicom.Serialization
             void AddItem(TDataSet item);
         }
 
+        public virtual bool Include(DicomTag tag) => !tag.IsPrivate;
+
         public virtual void SkippedValueWithUnknownVR(TDataSet dataSet, DicomTag tag, DicomAttribute attribute) { }
 
         public virtual void SkippedValueWithUndefinedLength(TDataSet dataSet, DicomTag tag, DicomAttribute attribute) { }
