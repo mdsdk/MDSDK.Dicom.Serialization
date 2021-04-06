@@ -27,6 +27,11 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             throw new NotImplementedException();
         }
 
+        internal override object GetValue(DicomStreamReader reader)
+        {
+            throw new NotImplementedException();
+        }
+
         public void WriteValue(DicomStreamWriter writer, List<T> value)
         {
             throw new NotImplementedException();

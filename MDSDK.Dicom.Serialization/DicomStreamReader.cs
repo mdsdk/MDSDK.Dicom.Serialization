@@ -7,7 +7,6 @@ using System.Buffers;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using System.Xml.Linq;
 
 namespace MDSDK.Dicom.Serialization
 {
@@ -389,12 +388,7 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
-        public void ToXml(XElement dataSet)
-        {
-            ToXml(dataSet, tag => true);
-        }
-
-        public void ToXml(XElement dataSet, Func<DicomTag, bool> filter)
+        public void ReadDataSet<TDataSet>(TDataSet dataSet, DicomDataConsumer<TDataSet> consumer) 
         {
             Debug.Assert(CurrentTag == DicomTag.Undefined);
 
@@ -407,49 +401,39 @@ namespace MDSDK.Dicom.Serialization
                     break;
                 }
 
-                if (!filter(CurrentTag))
+                DicomAttribute.TryLookup(CurrentTag, out DicomAttribute attribute);
+
+                var vr = ExplicitVR ?? attribute?.ImplicitVR;
+                if (vr == null)
                 {
+                    consumer.SkippedValueWithUnknownVR(dataSet, CurrentTag, attribute);
                     SkipValue();
                 }
                 else
                 {
-                    DicomAttribute.TryLookup(CurrentTag, out DicomAttribute attribute);
-
-                    var dataElementName = (attribute == null)
-                        ? $"{(CurrentTag.IsPrivate ? 'P' : 'U')}{CurrentTag.GroupNumber:X4}.{CurrentTag.ElementNumber:X4}"
-                        : attribute.Keyword;
-
-                    var dataElement = new XElement(dataElementName);
-                    dataSet.Add(dataElement);
-
-                    var vr = ExplicitVR ?? attribute?.ImplicitVR;
-                    if (vr == null)
+                    if (vr == DicomVR.SQ)
                     {
-                        dataElement.SetAttributeValue("Comment", "Skipped (Cannot determine VR)");
-                        SkipValue();
+                        TDataSet ConsumeItem(DicomStreamReader itemReader)
+                        {
+                            var itemDataSet = consumer.CreateItem();
+                            itemReader.ReadDataSet(itemDataSet, consumer);
+                            return itemDataSet;
+                        }
+
+                        using (var sequenceItemConsumer = consumer.CreateSequenceItemConsumer(dataSet, CurrentTag, attribute))
+                        {
+                            ReadSequenceItems(ConsumeItem, sequenceItemConsumer.AddItem);
+                        }
+                    }
+                    else if (ValueLength == UndefinedLength)
+                    {
+                        consumer.SkippedValueWithUndefinedLength(dataSet, CurrentTag, attribute);
+                        SkipItemsOfSequenceWithUndefinedLength();
                     }
                     else
                     {
-                        if (vr == DicomVR.SQ)
-                        {
-                            static XElement DeserializeItemXml(DicomStreamReader itemReader)
-                            {
-                                var itemDataSet = new XElement(DicomAttribute.Item.Keyword);
-                                itemReader.ToXml(itemDataSet);
-                                return itemDataSet;
-                            }
-
-                            ReadSequenceItems(DeserializeItemXml, dataElement.Add);
-                        }
-                        else if (ValueLength == UndefinedLength)
-                        {
-                            dataElement.SetAttributeValue("Comment", "Skipped (UndefinedLength)");
-                            SkipItemsOfSequenceWithUndefinedLength();
-                        }
-                        else
-                        {
-                            dataElement.Value = vr.ToString(this);
-                        }
+                        var value = vr.GetValue(this);
+                        consumer.ConsumeValue(dataSet, CurrentTag, attribute, value);
                     }
                 }
             }

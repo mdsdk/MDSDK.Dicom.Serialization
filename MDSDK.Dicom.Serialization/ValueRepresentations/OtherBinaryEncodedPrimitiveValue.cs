@@ -21,6 +21,8 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             }
         }
 
+        internal override object GetValue(DicomStreamReader reader) => ReadValue(reader);
+
         public virtual void WriteValue(DicomStreamWriter writer, T[] value) => WriteArray(writer, value);
     }
 }

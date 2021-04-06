@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class BinaryEncodedPrimitiveValueBase<T> : ValueRepresentation, IHasLightWeightValueLengthCalculation<T> 
+    public abstract class BinaryEncodedPrimitiveValueBase<T> : ValueRepresentation, IHasLightWeightValueLengthCalculation<T> 
         where T : unmanaged, IFormattable
     {
         private static readonly Type[] AllowedTypes = new[]

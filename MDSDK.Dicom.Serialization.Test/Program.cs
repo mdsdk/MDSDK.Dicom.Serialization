@@ -56,10 +56,10 @@ namespace MDSDK.Dicom.Serialization.Examples
                         var xmlOutputPath = $"{stream.Name}.xml";
                         Console.WriteLine($"Writing dataset to {xmlOutputPath}");
 
-                        var dataset = new XElement("DicomDataset");
-                        dataset.SetAttributeValue("Source", stream.Name);
-                        dicomFileReader.DataSetReader.ToXml(dataset);
-                        dataset.Save(xmlOutputPath);
+                        var dataSet = new XElement("DicomDataSet");
+                        dataSet.SetAttributeValue("Source", stream.Name);
+                        dicomFileReader.DataSetReader.ReadDataSet(dataSet, new DicomToXmlConverter());
+                        dataSet.Save(xmlOutputPath);
                     }
                     else
                     {

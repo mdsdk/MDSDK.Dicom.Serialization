@@ -37,6 +37,8 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             return convert(value);
         }
 
+        internal override object GetValue(DicomStreamReader reader) => GetValue<T>(this, reader);
+
         public void WriteValues(DicomStreamWriter writer, T[] values) => WriteArray(writer, values);
 
         public void WriteSingleValue(DicomStreamWriter writer, T value)

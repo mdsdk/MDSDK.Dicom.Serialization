@@ -47,6 +47,8 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             return result;
         }
 
+        internal override object GetValue(DicomStreamReader reader) => GetValue<DicomTag>(this, reader);
+
         public void WriteValues(DicomStreamWriter writer, DicomTag[] values)
         {
             writer.WriteVRLength(this, 4 * values.Length, out _);
