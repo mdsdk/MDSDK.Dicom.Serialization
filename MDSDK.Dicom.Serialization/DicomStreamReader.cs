@@ -49,6 +49,11 @@ namespace MDSDK.Dicom.Serialization
 
             CurrentTag = DicomTag.ReadFrom(Input);
 
+            if (CurrentTag.GroupNumber == 0xFFFF)
+            {
+                throw new IOException($"Invalid DICOM tag {CurrentTag} in input"); // See part 5, section 7.5.1 Item Encoding Rules
+            }
+
             if (CurrentTag.HasVR && (VRCoding == DicomVRCoding.Explicit))
             {
                 var b0 = Input.ReadByte();
@@ -438,8 +443,9 @@ namespace MDSDK.Dicom.Serialization
                         }
                         else
                         {
+                            var tag = CurrentTag; // Needed because vr.GetValue() leaves CurrentTag == Undefined
                             var value = vr.GetValue(this);
-                            consumer.ConsumeValue(dataSet, CurrentTag, attribute, value);
+                            consumer.ConsumeValue(dataSet, tag, attribute, value);
                         }
                     }
                 }
