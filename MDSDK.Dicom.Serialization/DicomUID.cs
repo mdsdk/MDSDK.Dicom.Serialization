@@ -17,7 +17,7 @@ namespace MDSDK.Dicom.Serialization
             s_names.Add(uid, name);
         }
 
-        public string Name => s_names.TryGetValue(UID, out string name) ? name : "<Unknown>";
+        public string Name => ((UID != null) && s_names.TryGetValue(UID, out string name)) ? name : "<Unknown>";
 
         public override string ToString() => (UID == null) ? "null" : $"{Name} ({UID})";
 
