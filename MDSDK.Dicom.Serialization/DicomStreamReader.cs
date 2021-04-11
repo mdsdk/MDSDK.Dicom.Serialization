@@ -288,12 +288,12 @@ namespace MDSDK.Dicom.Serialization
                 throw new Exception($"Expected {framePositions.Length} frame offsets in basic offset table but got {numberOfFrames}");
             }
 
-            var basePosition = Input.Position;
+            var positionOfFirstItemTagOfFirstFrameAfterBasicOffsetTable = Input.Position + 4 * numberOfFrames;
 
             for (var i = 0; i < numberOfFrames; i++)
             {
                 var offset = Input.Read<UInt32>();
-                framePositions[i] = basePosition + offset;
+                framePositions[i] = positionOfFirstItemTagOfFirstFrameAfterBasicOffsetTable + offset;
             }
         }
 
@@ -342,7 +342,7 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
-        public void ReadEncapsulatedPixelDataFrame(Action<BinaryStreamReader> readFrame)
+        public void ReadEncapsulatedPixelDataFrame(Action<BinaryStreamReader> decodeFrame)
         {
             if (!TryReadItemTagOfSequenceWithUndefinedLength())
             {
@@ -361,7 +361,18 @@ namespace MDSDK.Dicom.Serialization
 
             if (ValueLength == Input.BytesRemaining)
             {
-                Input.Read(ValueLength, () => readFrame(Input));
+                Input.Read(ValueLength, () =>
+                {
+                    decodeFrame(Input);
+
+                    // Pixel data decoding may end at an uneven byte boundary. 
+                    // In this case there will be one padding byte left to read
+
+                    if (Input.BytesRemaining == 1)
+                    {
+                        Input.SkipRemainingBytes();
+                    }
+                });
             }
             else
             {
@@ -384,7 +395,7 @@ namespace MDSDK.Dicom.Serialization
                     while (TryReadItemTagOfSequenceWithUndefinedLength());
 
                     var bufferReader = new BinaryStreamReader(Input.ByteOrder, buffer, n);
-                    readFrame.Invoke(bufferReader);
+                    decodeFrame.Invoke(bufferReader);
                 }
                 finally
                 {
