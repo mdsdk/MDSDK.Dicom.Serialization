@@ -23,10 +23,11 @@ namespace MDSDK.Dicom.Serialization
 
         public string Keyword { get; private set; }
 
-        private DicomAttribute(int num, ushort groupNumber, ushort elementNumber, params ValueRepresentation[] vrs)
+        internal DicomAttribute(string name, DicomTag tag, params ValueRepresentation[] vrs)
         {
-            Name = AttributeNames[num];
-            Tag = new DicomTag(groupNumber, elementNumber);
+            Name = name;
+            
+            Tag = tag;
 
             if (vrs.Length == 0)
             {
@@ -45,6 +46,11 @@ namespace MDSDK.Dicom.Serialization
             }
 
             VRs = vrs;
+        }
+
+        private DicomAttribute(int num, ushort groupNumber, ushort elementNumber, params ValueRepresentation[] vrs)
+            : this(AttributeNames[num], new DicomTag(groupNumber, elementNumber), vrs)
+        {
         }
 
         internal ValueRepresentation ImplicitVR => VRs.Length switch { 0 => null, 1 => VRs[0], _ => DicomVR.OW, };

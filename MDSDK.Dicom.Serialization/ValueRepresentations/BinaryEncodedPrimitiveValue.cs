@@ -43,7 +43,7 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
 
         public void WriteSingleValue(DicomStreamWriter writer, T value)
         {
-            writer.WriteVRLength(this, Unsafe.SizeOf<T>(), out _);
+            writer.WriteVRWithDefinedValueLength(this, Unsafe.SizeOf<T>(), out _);
             writer.Output.Write<T>(value);
         }
 

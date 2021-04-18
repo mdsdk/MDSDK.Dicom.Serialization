@@ -42,7 +42,7 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
         {
             var encoding = writer.SpecificCharsetEncoding ?? Encoding.ASCII;
             var bytes = encoding.GetBytes(value);
-            writer.WriteVRLength(this, bytes.Length, out bool pad);
+            writer.WriteVRWithDefinedValueLength(this, bytes.Length, out bool pad);
             writer.Output.WriteBytes(bytes);
             if (pad)
             {

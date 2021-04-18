@@ -78,23 +78,32 @@ namespace MDSDK.Dicom.Serialization
             foreach (var property in type.GetProperties())
             {
                 var dicomProperty = new DicomPropertyInfo(parent, property);
-                var dicomAttributeField = typeof(DicomAttribute).GetField(property.Name, BindingFlags.Public | BindingFlags.Static);
-                if (dicomAttributeField != null)
+                var dicomAttributeAttribute = property.GetCustomAttribute<DicomAttributeAttribute>();
+                if (dicomAttributeAttribute != null)
                 {
-                    dicomProperty.DicomAttribute = (DicomAttribute)dicomAttributeField.GetValue(null);
+                    dicomProperty.DicomAttribute = new DicomAttribute(property.Name, dicomAttributeAttribute.Tag, dicomAttributeAttribute.VR);
                     yield return dicomProperty;
                 }
                 else
                 {
-                    var count = 0;
-                    foreach (var descendant in GetDicomProperties(dicomProperty, property.PropertyType))
+                    var dicomAttributeField = typeof(DicomAttribute).GetField(property.Name, BindingFlags.Public | BindingFlags.Static);
+                    if (dicomAttributeField != null)
                     {
-                        count++;
-                        yield return descendant;
+                        dicomProperty.DicomAttribute = (DicomAttribute)dicomAttributeField.GetValue(null);
+                        yield return dicomProperty;
                     }
-                    if (count == 0)
+                    else
                     {
-                        throw new NotSupportedException($"{dicomProperty} is not a known DICOM attribute");
+                        var count = 0;
+                        foreach (var descendant in GetDicomProperties(dicomProperty, property.PropertyType))
+                        {
+                            count++;
+                            yield return descendant;
+                        }
+                        if (count == 0)
+                        {
+                            throw new NotSupportedException($"{dicomProperty} is not a known DICOM attribute");
+                        }
                     }
                 }
             }

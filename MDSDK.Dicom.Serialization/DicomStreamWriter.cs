@@ -3,6 +3,7 @@
 using MDSDK.BinaryIO;
 using MDSDK.Dicom.Serialization.ValueRepresentations;
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace MDSDK.Dicom.Serialization
@@ -41,10 +42,10 @@ namespace MDSDK.Dicom.Serialization
                 throw new ArgumentOutOfRangeException(nameof(unpaddedValueLength), $"{unpaddedValueLength} is out of 32-bit range");
             }
 
-            var valueLength = ((unpaddedValueLength % 2) != 0) ? (uint)unpaddedValueLength + 1: (uint)unpaddedValueLength;
+            var valueLength = ((unpaddedValueLength % 2) != 0) ? (uint)unpaddedValueLength + 1 : (uint)unpaddedValueLength;
 
             long dataElementLength = 4;
-            
+
             if (vrCoding == DicomVRCoding.Explicit)
             {
                 dataElementLength += 2;
@@ -71,16 +72,20 @@ namespace MDSDK.Dicom.Serialization
             return dataElementLength;
         }
 
-        public void WriteVRLength(ValueRepresentation vr, long unpaddedValueLength, out bool pad)
+        private const uint UndefinedLength = uint.MaxValue;
+
+        private const uint ZeroLength = 0;
+
+        public void WriteVRWithDefinedValueLength(ValueRepresentation vr, long unpaddedValueLength, out bool pad)
         {
-            if (unpaddedValueLength >= uint.MaxValue)
+            if (unpaddedValueLength >= UndefinedLength)
             {
                 throw new ArgumentOutOfRangeException(nameof(unpaddedValueLength), $"{unpaddedValueLength} is out of 32-bit range");
             }
 
             pad = (unpaddedValueLength % 2) != 0;
-            
-            var valueLength = pad ? (uint)unpaddedValueLength + 1: (uint)unpaddedValueLength;
+
+            var valueLength = pad ? (uint)unpaddedValueLength + 1 : (uint)unpaddedValueLength;
 
             if (VRCoding == DicomVRCoding.Explicit)
             {
@@ -104,6 +109,35 @@ namespace MDSDK.Dicom.Serialization
             {
                 Output.Write<UInt32>(valueLength);
             }
+        }
+
+        private void WriteVRWithUndefinedValueLength(ValueRepresentation vr)
+        {
+            if (VRCoding == DicomVRCoding.Explicit)
+            {
+                Output.WriteByte(vr.Id.Item1);
+                Output.WriteByte(vr.Id.Item2);
+                Output.WriteZeros(2);
+            }
+            Output.Write<UInt32>(UndefinedLength);
+        }
+
+        private void WriteTagLength(DicomTag tag, uint length)
+        {
+            WriteTag(tag);
+            Output.Write<uint>(length);
+        }
+
+        internal void WriteSequenceItems<T>(Action<DicomStreamWriter, T> itemSerializer, IEnumerator<T> itemEnumerator)
+        {
+            WriteVRWithUndefinedValueLength(DicomVR.SQ);
+            while (itemEnumerator.MoveNext())
+            {
+                WriteTagLength(DicomTag.Item, UndefinedLength);
+                itemSerializer.Invoke(this, itemEnumerator.Current);
+                WriteTagLength(DicomTag.ItemDelimitationItem, ZeroLength);
+            }
+            WriteTagLength(DicomTag.SequenceDelimitationItem, ZeroLength);
         }
     }
 }

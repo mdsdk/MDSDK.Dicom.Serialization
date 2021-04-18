@@ -53,7 +53,7 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
         internal void WriteArray(DicomStreamWriter writer, T[] value)
         {
             var valueLength = Unsafe.SizeOf<T>() * value.LongLength;
-            writer.WriteVRLength(this, valueLength, out _);
+            writer.WriteVRWithDefinedValueLength(this, valueLength, out _);
             writer.Output.Write<T>(value);
         }
 

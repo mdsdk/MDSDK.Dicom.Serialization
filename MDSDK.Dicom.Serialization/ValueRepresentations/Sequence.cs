@@ -34,19 +34,10 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
 
         public void WriteValue(DicomStreamWriter writer, List<T> value)
         {
-            throw new NotImplementedException();
-
-            /*
-            var items = new List<T>();
-            using (var sequenceItemReader = reader.GetSequenceReader(_deserializer.Deserialize))
+            using (var itemEnumerator = value.GetEnumerator())
             {
-                while (sequenceItemReader.MoveNext())
-                {
-                    items.Add(sequenceItemReader.Current);
-                }
+                writer.WriteSequenceItems(_serializer.Serialize, itemEnumerator);
             }
-            return items;
-            */
         }
     }
 }

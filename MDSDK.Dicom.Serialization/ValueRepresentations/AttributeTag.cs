@@ -37,7 +37,7 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
                 {
                     var tag = DicomTag.ReadFrom(reader.Input);
                     DicomAttribute.TryLookup(tag, out DicomAttribute attribute);
-                    yield return (attribute == null) ? tag.ToString() : attribute.Keyword;
+                    yield return (attribute == null) ? tag.ToString() : attribute.Keyword ?? attribute.Name;
                 }
             }
 
@@ -51,7 +51,7 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
 
         public void WriteValues(DicomStreamWriter writer, DicomTag[] values)
         {
-            writer.WriteVRLength(this, 4 * values.Length, out _);
+            writer.WriteVRWithDefinedValueLength(this, 4 * values.Length, out _);
             foreach (var value in values)
             {
                 value.WriteTo(writer.Output);
@@ -60,7 +60,7 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
 
         public void WriteSingleValue(DicomStreamWriter writer, DicomTag value)
         {
-            writer.WriteVRLength(this, 4, out _);
+            writer.WriteVRWithDefinedValueLength(this, 4, out _);
             value.WriteTo(writer.Output);
         }
 

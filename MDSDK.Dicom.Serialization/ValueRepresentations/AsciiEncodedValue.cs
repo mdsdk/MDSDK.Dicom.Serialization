@@ -47,7 +47,7 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
         internal void WriteEntireValue(DicomStreamWriter writer, string value)
         {
             var bytes = Encoding.ASCII.GetBytes(value);
-            writer.WriteVRLength(this, bytes.Length, out bool pad);
+            writer.WriteVRWithDefinedValueLength(this, bytes.Length, out bool pad);
             writer.Output.WriteBytes(bytes);
             if (pad)
             {
