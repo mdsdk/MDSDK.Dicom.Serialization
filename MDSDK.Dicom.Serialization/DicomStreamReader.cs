@@ -132,7 +132,7 @@ namespace MDSDK.Dicom.Serialization
                 var values = DicomVR.CS.ReadValues(this);
                 if (values.Length > 0)
                 {
-                    SpecificCharsetEncoding = DicomCharacterSet.GetEncoding(values[0]);
+                    SpecificCharsetEncoding = DicomCharacterSet.GetEncoding(values);
                 }
             }
             else if ((CurrentTag.GroupNumber == DicomTag.PixelDataGroupNumber) && !IsLegacyGroupLengthTag(CurrentTag))
