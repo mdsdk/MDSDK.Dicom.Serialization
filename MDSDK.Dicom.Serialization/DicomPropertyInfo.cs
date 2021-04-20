@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
+
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 

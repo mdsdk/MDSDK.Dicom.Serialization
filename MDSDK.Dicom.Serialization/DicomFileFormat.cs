@@ -1,8 +1,12 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
+using MDSDK.BinaryIO;
+using System;
+using System.IO;
+
 namespace MDSDK.Dicom.Serialization
 {
-    static class DicomFileFormat
+    public static class DicomFileFormat
     {
         internal static readonly byte[] BeforeFileMetaInformationLength = new[]
         {
@@ -23,5 +27,30 @@ namespace MDSDK.Dicom.Serialization
 
         internal static readonly DicomSerializer<DicomFileMetaInformation> FileMetaInformationSerializer
             = DicomSerializer.GetSerializer<DicomFileMetaInformation>();
+
+        public static void WriteHeader(Stream stream, DicomFileMetaInformation fileMetaInformation)
+        {
+            var output = new BinaryStreamWriter(ByteOrder.LittleEndian, stream);
+            
+            output.WriteZeros(128);
+            output.WriteBytes(BeforeFileMetaInformationLength);
+
+            var fileMetaInformationLengthPosition = output.Position;
+            
+            output.WriteZeros(4);
+            output.WriteBytes(AfterFileMetaInformationLength);
+            
+            var headerWriter = new DicomStreamWriter(DicomVRCoding.Explicit, output);
+            FileMetaInformationSerializer.Serialize(headerWriter, fileMetaInformation);
+            
+            var endOfFileMetaInformationPosition = output.Position;
+            
+            output.Flush(FlushMode.Shallow);
+
+            var fileMetaInformationLength = endOfFileMetaInformationPosition - (fileMetaInformationLengthPosition + 4);
+            stream.Seek(fileMetaInformationLengthPosition, SeekOrigin.Begin);
+            stream.Write(BitConverter.GetBytes((uint)fileMetaInformationLength));
+            stream.Seek(endOfFileMetaInformationPosition, SeekOrigin.Begin);
+        }
     }
 }

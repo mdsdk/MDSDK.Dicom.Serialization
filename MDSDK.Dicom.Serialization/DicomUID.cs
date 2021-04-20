@@ -17,9 +17,9 @@ namespace MDSDK.Dicom.Serialization
             s_names.Add(uid, name);
         }
 
-        public string Name => ((UID != null) && s_names.TryGetValue(UID, out string name)) ? name : "<Unknown>";
+        public string Name => (UID == null) ? "<null>" : s_names.TryGetValue(UID, out string name) ? name : "<unknown>";
 
-        public override string ToString() => (UID == null) ? "null" : $"{Name} ({UID})";
+        public override string ToString() => (UID == null) ? "<null>" : $"{Name} ({UID})";
 
         public DicomUID(string uid)
         {
@@ -30,7 +30,7 @@ namespace MDSDK.Dicom.Serialization
 
         public override bool Equals(object obj) => (obj is DicomUID other) && Equals(other);
 
-        public override int GetHashCode() => UID.GetHashCode();
+        public override int GetHashCode() => (UID == null) ? 0 : UID.GetHashCode();
 
         public static bool operator ==(DicomUID a, DicomUID b) => a.UID == b.UID;
 
