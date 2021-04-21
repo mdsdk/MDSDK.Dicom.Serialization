@@ -9,32 +9,36 @@ namespace MDSDK.Dicom.Serialization
     {
         private static readonly Dictionary<string, string> s_names = new();
 
-        public string UID { get; }
+        private readonly string _uid;
 
         private DicomUID(string uid, string name)
         {
-            UID = uid;
+            _uid = uid;
             s_names.Add(uid, name);
         }
 
-        public string Name => (UID == null) ? "<null>" : s_names.TryGetValue(UID, out string name) ? name : "<unknown>";
+        public string Name => (_uid == null) ? null : s_names.TryGetValue(_uid, out string name) ? name : string.Empty;
 
-        public override string ToString() => (UID == null) ? "<null>" : $"{Name} ({UID})";
-
-        public DicomUID(string uid)
+        private DicomUID(string uid)
         {
-            UID = uid;
+            _uid = uid;
         }
 
-        public bool Equals(DicomUID other) => UID == other.UID;
+        internal bool IsTransferSyntaxUID => _uid.StartsWith("1.2.840.10008.1.2");
+
+        public static implicit operator DicomUID(string uid) => new DicomUID(uid ?? throw new ArgumentNullException(nameof(uid)));
+
+        public static implicit operator string(DicomUID uid) => uid._uid ?? string.Empty;
+
+        public bool Equals(DicomUID other) => _uid == other._uid;
 
         public override bool Equals(object obj) => (obj is DicomUID other) && Equals(other);
 
-        public override int GetHashCode() => (UID == null) ? 0 : UID.GetHashCode();
+        public override int GetHashCode() => (_uid == null) ? 0 : _uid.GetHashCode();
 
-        public static bool operator ==(DicomUID a, DicomUID b) => a.UID == b.UID;
+        public static bool operator ==(DicomUID a, DicomUID b) => a._uid == b._uid;
 
-        public static bool operator !=(DicomUID a, DicomUID b) => a.UID != b.UID;
+        public static bool operator !=(DicomUID a, DicomUID b) => a._uid != b._uid;
 
         internal static class Retired
         {
@@ -43,7 +47,7 @@ namespace MDSDK.Dicom.Serialization
 
         #region SOP Class
 
-            public static readonly DicomUID VerificationSOPClass = new DicomUID("1.2.840.10008.1.1", "Verification SOP Class");
+        public static readonly DicomUID VerificationSOPClass = new DicomUID("1.2.840.10008.1.1", "Verification SOP Class");
         public static readonly DicomUID MediaStorageDirectoryStorage = new DicomUID("1.2.840.10008.1.3.10", "Media Storage Directory Storage");
         public static readonly DicomUID StorageCommitmentPushModelSOPClass = new DicomUID("1.2.840.10008.1.20.1", "Storage Commitment Push Model SOP Class");
         public static readonly DicomUID ProceduralEventLoggingSOPClass = new DicomUID("1.2.840.10008.1.40", "Procedural Event Logging SOP Class");

@@ -97,11 +97,11 @@ namespace MDSDK.Dicom.Serialization
 
         private readonly SortedList<DicomTag, PropertySerializer> _propertySerializers = new();
 
-        private static bool TryMakePropertySerializer(DicomPropertyInfo dicomProperty, ValueRepresentation vr, 
+        private static bool TryMakePropertySerializer(DicomPropertyInfo dicomProperty, ValueRepresentation vr,
             out PropertySerializer propertySerializer)
         {
             var nonNullablePropertyType = GetNonNullableType(dicomProperty.PropertyType);
-            
+
             if (vr is Sequence<object>)
             {
                 if (nonNullablePropertyType.IsGenericType && nonNullablePropertyType.GetGenericTypeDefinition() == typeof(List<>))
@@ -191,7 +191,7 @@ namespace MDSDK.Dicom.Serialization
         private PropertySerializer MakePropertySerializer(DicomPropertyInfo dicomProperty)
         {
             var nonNullablePropertyType = GetNonNullableType(dicomProperty.PropertyType);
-            
+
             if (nonNullablePropertyType.IsEnum)
             {
                 return MakeEnumPropertySerializer(dicomProperty, nonNullablePropertyType);
@@ -247,8 +247,16 @@ namespace MDSDK.Dicom.Serialization
             {
                 if (reader.TrySeek(tag))
                 {
-                    var propertyValue = propertySerializer.DeserializePropertyValue.Invoke(reader);
-                    propertySerializer.DicomProperty.SetValue(obj, propertyValue);
+                    if ((reader.ValueLength == 0) && propertySerializer.NonNullablePropertyType.IsValueType)
+                    {
+                        reader.EndReadValue();
+                        propertySerializer.DicomProperty.SetValue(obj, null); // assign default value 
+                    }
+                    else
+                    {
+                        var propertyValue = propertySerializer.DeserializePropertyValue.Invoke(reader);
+                        propertySerializer.DicomProperty.SetValue(obj, propertyValue);
+                    }
                 }
                 else
                 {

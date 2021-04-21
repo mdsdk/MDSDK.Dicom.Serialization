@@ -15,7 +15,7 @@ namespace MDSDK.Dicom.Serialization
 
         public DicomTransferSyntax(DicomUID uid)
         {
-            if (!uid.UID.StartsWith("1.2.840.10008.1.2"))
+            if (!uid.IsTransferSyntaxUID)
             {
                 throw new ArgumentException("UID is not a DICOM transfer syntax UID");
             }

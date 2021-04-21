@@ -51,9 +51,9 @@ namespace MDSDK.Dicom.Serialization
                 FileMetaInformation = FileMetaInformationSerializer.Deserialize(metaInformationReader);
             });
 
-            MediaStorageSOPClassUID = new DicomUID(FileMetaInformation.MediaStorageSOPClassUID);
+            MediaStorageSOPClassUID = FileMetaInformation.MediaStorageSOPClassUID;
 
-            TransferSyntax = new DicomTransferSyntax(new DicomUID(FileMetaInformation.TransferSyntaxUID));
+            TransferSyntax = new DicomTransferSyntax(FileMetaInformation.TransferSyntaxUID);
             input.ByteOrder = TransferSyntax.ByteOrder;
             DataSetReader = new DicomStreamReader(TransferSyntax.VRCoding, input);
 

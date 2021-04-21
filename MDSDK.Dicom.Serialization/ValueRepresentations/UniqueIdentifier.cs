@@ -9,9 +9,9 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
     {
         public UniqueIdentifier() : base("UI") { }
 
-        private static DicomUID ToDicomUID(string uid, NumberFormatInfo _) => new DicomUID(uid);
+        private static DicomUID ToDicomUID(string uid, NumberFormatInfo _) => uid;
 
-        private static string ToString(DicomUID dicomUID, NumberFormatInfo _) => dicomUID.UID;
+        private static string ToString(DicomUID dicomUID, NumberFormatInfo _) => dicomUID;
 
         DicomUID[] IMultiValue<DicomUID>.ReadValues(DicomStreamReader reader) => ReadAndConvertValues(reader, ToDicomUID);
 
