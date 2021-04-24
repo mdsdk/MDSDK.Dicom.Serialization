@@ -80,27 +80,6 @@ namespace MDSDK.Dicom.Serialization
 
         public override string ToString() => $"{Tag} {Keyword}";
 
-        private static Dictionary<A, ValueRepresentation> s_extendedVRs = new();
-
-        public void SetExtendedVR<T, TVR>() where TVR : ValueRepresentation, new()
-        {
-            if (!VRs.Any(vr => vr.GetType().IsAssignableFrom(typeof(TVR))))
-            {
-                throw new ArgumentException($"{typeof(TVR)} must extend one of the standard VRs of {this}");
-            }
-            var extendedVR = new TVR();
-            if ((extendedVR is ISingleValue<T>) == (extendedVR is IMultiValue<T>))
-            {
-                throw new ArgumentException($"{typeof(TVR)} must implement either {typeof(ISingleValue<T>)} or {typeof(IMultiValue<T>)}");
-            }
-            s_extendedVRs[this] = extendedVR;
-        }
-
-        internal bool TryGetExtendedVR(out ValueRepresentation extendedVR)
-        {
-            return s_extendedVRs.TryGetValue(this, out extendedVR);
-        }
-
         #region Attributes
 
         public static readonly A CommandGroupLength = new A(0, 0x0000, 0x0000, V.UL);
