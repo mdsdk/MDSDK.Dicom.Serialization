@@ -123,6 +123,11 @@ namespace MDSDK.Dicom.Serialization
             CurrentTag = DicomTag.Undefined;
         }
 
+        internal void ApplySpecfificCharacterSet(string[] values)
+        {
+            SpecificCharsetEncoding = DicomCharacterSet.GetEncoding(values);
+        }
+
         private static bool IsLegacyGroupLengthTag(DicomTag tag) => tag.ElementNumber == 0x000;
 
         private void SkipValue()
@@ -130,10 +135,7 @@ namespace MDSDK.Dicom.Serialization
             if (CurrentTag == DicomTag.SpecificCharacterSet)
             {
                 var values = DicomVR.CS.ReadValues(this);
-                if (values.Length > 0)
-                {
-                    SpecificCharsetEncoding = DicomCharacterSet.GetEncoding(values);
-                }
+                ApplySpecfificCharacterSet(values);
             }
             else if ((CurrentTag.GroupNumber == DicomTag.PixelDataGroupNumber) && !IsLegacyGroupLengthTag(CurrentTag))
             {

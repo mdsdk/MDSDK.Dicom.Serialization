@@ -14,9 +14,14 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
         {
             var valueLength = GetDefinedValueLength(reader);
             var bytes = reader.Input.ReadBytes(valueLength);
-            reader.EndReadValue();
             var significantBytes = StripNonSignificantBytes(bytes);
-            return Encoding.ASCII.GetString(significantBytes);
+            var value = Encoding.ASCII.GetString(significantBytes);
+            if (reader.CurrentTag == DicomTag.SpecificCharacterSet)
+            {
+                reader.ApplySpecfificCharacterSet(value.Split('\\'));
+            }
+            reader.EndReadValue();
+            return value;
         }
 
         private static ReadOnlySpan<byte> StripNonSignificantBytes(byte[] bytes)

@@ -65,13 +65,9 @@ namespace MDSDK.Dicom.Serialization
             {
                 return Encoding.ASCII;
             }
-            else if (specificCharacterSet.Length == 1)
+            else 
             {
-                return GetEncoding(specificCharacterSet[0]);
-            }
-            else
-            {
-                throw NotSupported(specificCharacterSet);
+                return GetEncoding(specificCharacterSet[specificCharacterSet.Length - 1]);
             }
         }
     }
