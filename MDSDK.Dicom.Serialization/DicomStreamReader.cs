@@ -22,13 +22,13 @@ namespace MDSDK.Dicom.Serialization
             Input = input;
         }
 
-        public Encoding SpecificCharsetEncoding { get; private set; }
+        internal DicomStringDecoder EncodedStringDecoder { get; private set; }
 
         private DicomStreamReader CreateNestedReader()
         {
             return new DicomStreamReader(VRCoding, Input)
             {
-                SpecificCharsetEncoding = SpecificCharsetEncoding
+                EncodedStringDecoder = EncodedStringDecoder
             };
         }
 
@@ -125,7 +125,7 @@ namespace MDSDK.Dicom.Serialization
 
         internal void ApplySpecfificCharacterSet(string[] values)
         {
-            SpecificCharsetEncoding = DicomCharacterSet.GetEncoding(values);
+            EncodedStringDecoder = DicomStringDecoder.Get(values);
         }
 
         private static bool IsLegacyGroupLengthTag(DicomTag tag) => tag.ElementNumber == 0x000;
@@ -419,7 +419,9 @@ namespace MDSDK.Dicom.Serialization
                     break;
                 }
 
-                if (!consumer.Include(CurrentTag))
+                var tagConsumptionOptions = consumer.GetOptions(CurrentTag);
+
+                if (tagConsumptionOptions.HasFlag(DicomTagConsumptionOptions.Skip))
                 {
                     SkipValue();
                 }
@@ -454,9 +456,15 @@ namespace MDSDK.Dicom.Serialization
                             consumer.SkippedValueWithUndefinedLength(dataSet, CurrentTag, attribute);
                             SkipItemsOfSequenceWithUndefinedLength();
                         }
+                        else if (tagConsumptionOptions.HasFlag(DicomTagConsumptionOptions.RawValue))
+                        {
+                            var rawValue = Input.ReadBytes(ValueLength);
+                            consumer.ConsumeValue(dataSet, CurrentTag, attribute, rawValue);
+                            EndReadValue();
+                        }
                         else
                         {
-                            var tag = CurrentTag; // Needed because vr.GetValue() leaves CurrentTag == Undefined
+                            var tag = CurrentTag; // Needed because vr.GetValue() calls EndReadValue() which leaves CurrentTag == Undefined
                             var value = vr.GetValue(this);
                             consumer.ConsumeValue(dataSet, tag, attribute, value);
                         }

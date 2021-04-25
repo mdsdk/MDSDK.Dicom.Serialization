@@ -12,7 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MDSDK.Dicom.Serialization.Examples", "MDSDK.Dicom.Serialization.Test\MDSDK.Dicom.Serialization.Examples.csproj", "{EF47B3F9-D72A-4B5C-B87C-5A2F02DF5FE8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MDSDK.Dicom.Serialization.Test", "MDSDK.Dicom.Serialization.Test\MDSDK.Dicom.Serialization.Test.csproj", "{EF47B3F9-D72A-4B5C-B87C-5A2F02DF5FE8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

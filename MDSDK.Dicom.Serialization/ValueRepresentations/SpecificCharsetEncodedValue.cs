@@ -14,24 +14,23 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             var valueLength = GetDefinedValueLength(reader);
             var bytes = reader.Input.ReadBytes(valueLength);
             reader.EndReadValue();
-            var significantBytes = StripNonSignificantBytes(bytes);
-            var encoding = reader.SpecificCharsetEncoding ?? Encoding.ASCII;
-            return encoding.GetString(significantBytes);
+            var encoding = reader.EncodedStringDecoder ?? DicomStringDecoder.Default;
+            return encoding.Decode(this, TrimEnd(bytes));
         }
 
-        protected static ReadOnlySpan<byte> StripNonSignificantBytes(byte[] bytes)
+        protected static ReadOnlyMemory<byte> TrimEnd(byte[] bytes)
         {
             const byte Space = 0x20;
             const byte Null = 0x00;
 
-            var end = bytes.Length;
+            var n = bytes.Length;
 
-            while ((end > 0) && ((bytes[end - 1] == Space) || (bytes[end - 1] == Null)))
+            while ((n > 0) && ((bytes[n - 1] == Space) || (bytes[n - 1] == Null)))
             {
-                end--;
+                n--;
             }
 
-            return bytes.AsSpan(0, end);
+            return bytes.AsMemory(0, n);
         }
 
         internal override object GetValue(DicomStreamReader reader) => ReadEntireValue(reader);

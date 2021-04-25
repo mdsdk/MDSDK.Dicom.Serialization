@@ -6,7 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace MDSDK.Dicom.Serialization.Examples
+namespace MDSDK.Dicom.Serialization.Test
 {
     class DicomToXmlConverter : DicomDataConsumer<XElement>
     {

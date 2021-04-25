@@ -4,6 +4,9 @@ using System;
 
 namespace MDSDK.Dicom.Serialization
 {
+    [Flags]
+    public enum DicomTagConsumptionOptions { Skip = 1, RawValue = Skip << 1 };
+
     public abstract class DicomDataConsumer<TDataSet>
     {
         public interface ISequenceItemConsumer : IDisposable
@@ -11,7 +14,7 @@ namespace MDSDK.Dicom.Serialization
             void AddItem(TDataSet item);
         }
 
-        public virtual bool Include(DicomTag tag) => !tag.IsPrivate;
+        public virtual DicomTagConsumptionOptions GetOptions(DicomTag tag) => tag.IsPrivate ? DicomTagConsumptionOptions.Skip : default;
 
         public virtual void SkippedValueWithUnknownVR(TDataSet dataSet, DicomTag tag, DicomAttribute attribute) { }
 
