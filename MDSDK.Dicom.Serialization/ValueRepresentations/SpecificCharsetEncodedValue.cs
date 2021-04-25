@@ -34,14 +34,11 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             return bytes.AsSpan(0, end);
         }
 
-        internal override string ToString(DicomStreamReader reader) => ReadEntireValue(reader);
-
         internal override object GetValue(DicomStreamReader reader) => ReadEntireValue(reader);
 
         internal void WriteEntireValue(DicomStreamWriter writer, string value)
         {
-            var encoding = writer.SpecificCharsetEncoding ?? Encoding.ASCII;
-            var bytes = encoding.GetBytes(value);
+            var bytes = Encoding.UTF8.GetBytes(value);
             writer.WriteVRWithDefinedValueLength(this, bytes.Length, out bool pad);
             writer.Output.WriteBytes(bytes);
             if (pad)

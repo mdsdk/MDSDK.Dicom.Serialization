@@ -33,23 +33,6 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             return array;
         }
 
-        internal override string ToString(DicomStreamReader reader)
-        {
-            IEnumerable<string> EnumerateStringValues(int count)
-            {
-                for (var i = 0; i < count; i++)
-                {
-                    var value = reader.Input.Read<T>();
-                    yield return value.ToString(null, NumberFormatInfo.InvariantInfo);
-                }
-            }
-
-            var count = GetValueCount<T>(reader);
-            var result = string.Join('\\', EnumerateStringValues(count));
-            reader.EndReadValue();
-            return result;
-        }
-
         internal void WriteArray(DicomStreamWriter writer, T[] value)
         {
             var valueLength = Unsafe.SizeOf<T>() * value.LongLength;

@@ -1,8 +1,7 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
 using MDSDK.Dicom.Serialization.ValueRepresentations;
-using System;
-using System.Linq;
+using MDSDK.Dicom.Serialization.ValueRepresentations.Mixed;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -19,33 +18,53 @@ namespace MDSDK.Dicom.Serialization
 
         public DicomTag Tag { get; }
 
-        public ValueRepresentation[] VRs { get; }
+        public ValueRepresentation VR { get; }
 
         public string Keyword { get; private set; }
 
         internal DicomAttribute(string name, DicomTag tag, params ValueRepresentation[] vrs)
         {
             Name = name;
-            
+
             Tag = tag;
 
             if (vrs.Length == 0)
             {
                 Debug.Assert(!Tag.HasVR);
             }
-            else if (vrs.Length == 2)
-            {
-                var vr0 = vrs[0];
-                var vr1 = vrs[1];
-                Debug.Assert((vr0 == DicomVR.OB) || (vr0 == DicomVR.US));
-                Debug.Assert((vr1 == DicomVR.OW) || (vr1 == DicomVR.SS));
-            }
             else
             {
-                Debug.Assert(vrs.Length == 1);
+                Debug.Assert(Tag.HasVR);
+                if (vrs.Length == 1)
+                {
+                    VR = vrs[0];
+                }
+                else if (vrs.Length == 2)
+                {
+                    var vr0 = vrs[0];
+                    var vr1 = vrs[1];
+                    if ((vr0 == DicomVR.US) && (vr1 == DicomVR.SS))
+                    {
+                        VR = DicomVR.Mixed.US_or_SS;
+                    }
+                    else if ((vr0 == DicomVR.OB) && (vr1 == DicomVR.OW))
+                    {
+                        VR = DicomVR.Mixed.OB_or_OW;
+                    }
+                    else if ((vr0 == DicomVR.US) && (vr1 == DicomVR.OW))
+                    {
+                        VR = DicomVR.Mixed.US_or_OW;
+                    }
+                    else
+                    {
+                        Debug.Assert(false);
+                    }
+                }
+                else
+                {
+                    Debug.Assert(false);
+                }
             }
-
-            VRs = vrs;
         }
 
         private DicomAttribute(int num, ushort groupNumber, ushort elementNumber, params ValueRepresentation[] vrs)
@@ -53,7 +72,7 @@ namespace MDSDK.Dicom.Serialization
         {
         }
 
-        internal ValueRepresentation ImplicitVR => VRs.Length switch { 0 => null, 1 => VRs[0], _ => DicomVR.OW, };
+        internal ValueRepresentation ImplicitVR => (VR is IMixedValueRepresentation mixedVR) ? mixedVR.DefaultVR : VR;
 
         private static readonly Dictionary<DicomTag, DicomAttribute> s_lookupByTag;
 

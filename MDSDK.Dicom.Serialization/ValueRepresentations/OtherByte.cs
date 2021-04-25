@@ -49,11 +49,5 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
                 return byteArray;
             }
         }
-
-        internal override string ToString(DicomStreamReader reader)
-        {
-            var value = ReadValue(reader);
-            return (value.Length > 256) ? Convert.ToBase64String(value) : Convert.ToHexString(value);
-        }
     }
 }

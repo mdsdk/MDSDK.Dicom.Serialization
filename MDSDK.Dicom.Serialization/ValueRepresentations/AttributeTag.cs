@@ -29,24 +29,6 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             return tag;
         }
 
-        internal override string ToString(DicomStreamReader reader)
-        {
-            IEnumerable<string> EnumerateStringValues(int count)
-            {
-                for (var i = 0; i < count; i++)
-                {
-                    var tag = DicomTag.ReadFrom(reader.Input);
-                    DicomAttribute.TryLookup(tag, out DicomAttribute attribute);
-                    yield return (attribute == null) ? tag.ToString() : attribute.Keyword ?? attribute.Name;
-                }
-            }
-
-            var count = GetValueCount(reader, 4);
-            var result = string.Join('\\', EnumerateStringValues(count));
-            reader.EndReadValue();
-            return result;
-        }
-
         internal override object GetValue(DicomStreamReader reader) => GetValue<DicomTag>(this, reader);
 
         public void WriteValues(DicomStreamWriter writer, DicomTag[] values)

@@ -22,10 +22,12 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             return items;
         }
 
+        /*
         internal override string ToString(DicomStreamReader dicomStreamReader)
         {
             throw new NotImplementedException();
         }
+        */
 
         internal override object GetValue(DicomStreamReader reader)
         {

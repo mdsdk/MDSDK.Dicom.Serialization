@@ -45,8 +45,6 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             return bytes.AsSpan(start, end - start);
         }
 
-        internal override string ToString(DicomStreamReader reader) => ReadEntireValue(reader);
-
         internal override object GetValue(DicomStreamReader reader) => ReadEntireValue(reader);
 
         internal void WriteEntireValue(DicomStreamWriter writer, string value)

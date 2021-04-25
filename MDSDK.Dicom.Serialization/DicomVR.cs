@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
 using MDSDK.Dicom.Serialization.ValueRepresentations;
+using MDSDK.Dicom.Serialization.ValueRepresentations.Mixed;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -43,6 +44,13 @@ namespace MDSDK.Dicom.Serialization
         public static readonly UnsignedShort US = new();
         public static readonly UnlimitedText UT = new();
         public static readonly UnsignedVeryLong UV = new();
+
+        internal static class Mixed
+        {
+            public static readonly OtherByteOrWord OB_or_OW = new();
+            public static readonly UnsignedOrSignedShort US_or_SS = new();
+            public static readonly UnsignedShortOrOtherWord US_or_OW = new();
+        }
 
         private static readonly Dictionary<System.ValueTuple<byte, byte>, ValueRepresentation> s_vrMap;
 

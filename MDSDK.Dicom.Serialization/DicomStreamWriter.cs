@@ -20,18 +20,20 @@ namespace MDSDK.Dicom.Serialization
             Output = output;
         }
 
-        public Encoding SpecificCharsetEncoding { get; private set; }
-
-        private DicomStreamWriter CreateNestedWriter()
-        {
-            return new DicomStreamWriter(VRCoding, Output)
-            {
-                SpecificCharsetEncoding = SpecificCharsetEncoding
-            };
-        }
+        private bool _specificCharacterSetWritten;
 
         public void WriteTag(DicomTag tag)
         {
+            if (!_specificCharacterSetWritten && (tag >= DicomTag.SpecificCharacterSet))
+            {
+                if (tag == DicomTag.SpecificCharacterSet)
+                {
+                    throw new InvalidOperationException("SpecificCharacterSet cannot be set explicitly");
+                }
+                DicomTag.SpecificCharacterSet.WriteTo(Output);
+                DicomVR.CS.WriteSingleValue(this, "ISO_IR 192");
+                _specificCharacterSetWritten = true;
+            }
             tag.WriteTo(Output);
         }
 

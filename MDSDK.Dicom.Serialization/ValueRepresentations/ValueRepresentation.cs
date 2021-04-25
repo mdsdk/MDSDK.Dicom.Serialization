@@ -19,8 +19,6 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             Id = new ValueTuple<byte, byte>((byte)name[0], (byte)name[1]);
         }
 
-        internal abstract string ToString(DicomStreamReader reader);
-
         internal abstract object GetValue(DicomStreamReader reader);
 
         internal static object GetValue<T>(IMultiValue<T> vr, DicomStreamReader reader)
