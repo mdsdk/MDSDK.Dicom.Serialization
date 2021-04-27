@@ -5,6 +5,7 @@ using System.Collections.Generic;
 
 namespace MDSDK.Dicom.Serialization
 {
+    /// <summary>Well-known DICOM UIDs</summary>
     public readonly struct DicomUID : IEquatable<DicomUID>
     {
         private static readonly Dictionary<string, string> s_names = new();
@@ -17,6 +18,7 @@ namespace MDSDK.Dicom.Serialization
             s_names.Add(uid, name);
         }
 
+        /// <summary>The name of the DICOM UID</summary>
         public string Name => (_uid == null) ? null : s_names.TryGetValue(_uid, out string name) ? name : _uid;
 
         private DicomUID(string uid)
@@ -25,6 +27,8 @@ namespace MDSDK.Dicom.Serialization
         }
 
         internal bool IsTransferSyntaxUID => _uid.StartsWith("1.2.840.10008.1.2");
+
+#pragma warning disable CS1591
 
         public static implicit operator DicomUID(string uid) => new DicomUID(uid ?? throw new ArgumentNullException(nameof(uid)));
 
@@ -42,10 +46,14 @@ namespace MDSDK.Dicom.Serialization
 
         public override string ToString() => Name;
 
+#pragma warning restore
+
         internal static class Retired
         {
             public static readonly DicomUID ExplicitVRBigEndian = new DicomUID("1.2.840.10008.1.​2.​2", "Explicit VR Big Endian (Retired)");
         }
+
+#pragma warning disable CS1591
 
         #region SOP Class
 
@@ -460,5 +468,7 @@ namespace MDSDK.Dicom.Serialization
         public static readonly DicomUID UniversalCoordinatedTime = new DicomUID("1.2.840.10008.15.1.1", "Universal Coordinated Time");
 
         #endregion
+
+#pragma warning restore
     }
 }

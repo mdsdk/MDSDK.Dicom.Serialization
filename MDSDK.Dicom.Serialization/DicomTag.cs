@@ -5,20 +5,27 @@ using System;
 
 namespace MDSDK.Dicom.Serialization
 {
+    /// <summary>DICOM tag</summary>
     public struct DicomTag : IEquatable<DicomTag>, IComparable<DicomTag>
     {
         private readonly uint _value;
 
+        /// <summary>The group number of the DICOM tag</summary>
         public ushort GroupNumber => (ushort)(_value >> 16);
 
+        /// <summary>The element number of the DICOM tag</summary>
         public ushort ElementNumber => (ushort)(_value & 0xFFFF);
 
+        /// <summary>Creates a DICOM tag from the given group and element number</summary>
         public DicomTag(ushort groupNumber, ushort elementNumber)
         {
             _value = (uint)((groupNumber << 16) | elementNumber);
         }
 
+        /// <summary>Indicates whether this is a private tag</summary>
         public bool IsPrivate => (GroupNumber & 1) != 0;
+
+#pragma warning disable CS1591
 
         public bool Equals(DicomTag other) => _value == other._value;
 
@@ -38,6 +45,8 @@ namespace MDSDK.Dicom.Serialization
 
         public static bool operator <=(DicomTag a, DicomTag b) => a._value <= b._value;
         public static bool operator >=(DicomTag a, DicomTag b) => a._value >= b._value;
+
+#pragma warning restore
 
         internal static DicomTag ReadFrom(BinaryDataReader input)
         {

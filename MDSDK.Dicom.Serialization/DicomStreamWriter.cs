@@ -8,21 +8,25 @@ using System.Diagnostics;
 
 namespace MDSDK.Dicom.Serialization
 {
+    /// <summary>Provides methods for reading DICOM data elements to a stream using a given transfer syntax</summary>
     public class DicomStreamWriter
     {
+        /// <summary>Creates a DicomStreamWriter for writing DICOM data elements to a stream using the given transfer syntax</summary>
         public static DicomStreamWriter Create(BufferedStreamWriter output, DicomUID transferSyntaxUID)
         {
             var transferSyntax = new DicomTransferSyntax(transferSyntaxUID);
             return new DicomStreamWriter(output, transferSyntax);
         }
 
+        /// <summary>The stream to which the DicomStreamWriter writes the DICOM data elements</summary>
         public BufferedStreamWriter Output { get; }
 
         internal DicomTransferSyntax TransferSyntax { get; }
 
-        public BinaryDataWriter DataWriter { get; }
+        internal BinaryDataWriter DataWriter { get; }
 
-        internal DicomVRCoding VRCoding { get; }
+        /// <summary>The VR coding used to write DICOM data elements</summary>
+        public DicomVRCoding VRCoding { get; }
 
         internal DicomStreamWriter(BufferedStreamWriter output, DicomTransferSyntax transferSyntax)
         {
@@ -34,7 +38,7 @@ namespace MDSDK.Dicom.Serialization
 
         private bool _specificCharacterSetWritten;
 
-        public void WriteTag(DicomTag tag)
+        internal void WriteTag(DicomTag tag)
         {
             if (!_specificCharacterSetWritten && (tag >= DicomTag.SpecificCharacterSet))
             {

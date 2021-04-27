@@ -2,7 +2,7 @@
 
 namespace MDSDK.Dicom.Serialization.Internal
 {
-    public enum LegacyCharacterSetType
+    internal enum LegacyCharacterSetType
     {
         SingleByte, MultiByte
     }

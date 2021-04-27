@@ -4,13 +4,13 @@ using MDSDK.BinaryIO;
 using MDSDK.Dicom.Serialization.ValueRepresentations;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using System.Linq;
 using MDSDK.Dicom.Serialization.ValueRepresentations.Extensions;
 
 namespace MDSDK.Dicom.Serialization
 {
+    /// <summary>Provided methods for serializing and deserializing C# objects to and from DICOM</summary>
     public class DicomSerializer
     {
         private static Type GetNonNullableType(Type type) => Nullable.GetUnderlyingType(type) ?? type;
@@ -93,7 +93,7 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
-        public Type DicomObjectType { get; }
+        internal Type DicomObjectType { get; }
 
         private readonly SortedList<DicomTag, PropertySerializer> _propertySerializers = new();
 
@@ -262,6 +262,7 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
+        /// <summary>Deserializes a C# object from a DICOM data stream</summary>
         public object Deserialize(DicomStreamReader reader)
         {
             var dicomObject = Activator.CreateInstance(DicomObjectType);
@@ -269,12 +270,14 @@ namespace MDSDK.Dicom.Serialization
             return dicomObject;
         }
 
+        /// <summary>Serializes a C# object to a DICOM data stream</summary>
         public void Serialize(DicomStreamWriter writer, object dicomObject)
         {
             SerializeProperties(writer, dicomObject);
         }
 
-        private bool TryGetSerializedLength(object obj, DicomVRCoding vrCoding, out long serializedLength)
+        /// <summary>Tries to calculate the length of the resulting DICOM data stream when the given object is serialized using the given VR coding</summary>
+        public bool TryGetSerializedLength(object obj, DicomVRCoding vrCoding, out long serializedLength)
         {
             serializedLength = 0;
             if (_propertySerializers.Any(kv => kv.Value.GetSerializedPropertyLength == null))
@@ -291,22 +294,9 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
-        public bool TryGetSerializedLength(object obj, DicomVRCoding vrCoding, out uint serializedLength)
-        {
-            if (TryGetSerializedLength(obj, vrCoding, out long length) && (length < uint.MaxValue))
-            {
-                serializedLength = (uint)length;
-                return true;
-            }
-            else
-            {
-                serializedLength = 0;
-                return false;
-            }
-        }
-
         private static readonly Dictionary<Type, DicomSerializer> s_serializers = new();
 
+        /// <summary>Returns a DicomSerializer that can be used to serialize and deserialize C# objects of type T to and from DICOM</summary>
         public static DicomSerializer<T> GetSerializer<T>()
         {
             lock (s_serializers)
@@ -321,6 +311,7 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
+        /// <summary>Deserialize a C# object of type T from a DICOM data stream using the given transfer syntax</summary>
         public static T Deserialize<T>(BufferedStreamReader input, DicomUID transferSyntaxUID) where T : new()
         {
             var serializer = GetSerializer<T>();
@@ -330,6 +321,7 @@ namespace MDSDK.Dicom.Serialization
             return obj;
         }
 
+        /// <summary>Serializes a C# object of type T to a DICOM data stream using the given transfer syntax</summary>
         public static void Serialize<T>(BufferedStreamWriter output, DicomUID transferSyntaxUID, T obj)
         {
             var serializer = GetSerializer<T>();
@@ -339,6 +331,7 @@ namespace MDSDK.Dicom.Serialization
         }
     }
 
+    /// <summary>Provided methods for serializing and deserializing C# objects of type T to and from DICOM</summary>
     public class DicomSerializer<T> : DicomSerializer
     {
         internal DicomSerializer()
@@ -346,6 +339,7 @@ namespace MDSDK.Dicom.Serialization
         {
         }
 
+        /// <summary>Deserializes a C# object of type T from a DICOM data stream</summary>
         public new T Deserialize(DicomStreamReader reader)
         {
             var obj = Activator.CreateInstance<T>();
@@ -353,6 +347,7 @@ namespace MDSDK.Dicom.Serialization
             return obj;
         }
 
+        /// <summary>Serializes a C# object of type T to a DICOM data stream</summary>
         public void Serialize(DicomStreamWriter writer, T obj)
         {
             SerializeProperties(writer, obj);

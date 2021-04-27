@@ -38,7 +38,7 @@
             <summary>Return the raw value of the attribute without converting to its value representation</summary>
         </member>
         <member name="T:MDSDK.Dicom.Serialization.DicomDataConsumer`1">
-            <summary>Base class for consuming DICOM data into a generic dataset</summary>
+            <summary>Base class for consuming DICOM data into a generic data set</summary>
         </member>
         <member name="T:MDSDK.Dicom.Serialization.DicomDataConsumer`1.ISequenceItemConsumer">
             <summary>Interface for consuming sequence items</summary>
@@ -62,7 +62,7 @@
             <summary>Called to consume an sequence attribute</summary>
         </member>
         <member name="M:MDSDK.Dicom.Serialization.DicomDataConsumer`1.CreateItem">
-            <summary>Called to create a dataset for a sequence item</summary>
+            <summary>Called to create a data set for a sequence item</summary>
         </member>
         <member name="M:MDSDK.Dicom.Serialization.DicomDataConsumer`1.Dipose">
             <inheritdoc/>
@@ -70,11 +70,110 @@
         <member name="T:MDSDK.Dicom.Serialization.DicomFileFormat">
             <summary>Provides methods for reading and writing DICOM files</summary>
         </member>
-        <member name="M:MDSDK.Dicom.Serialization.DicomFileFormat.WriteHeader(System.IO.Stream,MDSDK.Dicom.Serialization.DicomFileMetaInformation)">
-            <summary>Writes a DICOM file header</summary>
+        <member name="M:MDSDK.Dicom.Serialization.DicomFileFormat.TryReadHeader(MDSDK.BinaryIO.BufferedStreamReader,MDSDK.Dicom.Serialization.DicomFileMetaInformation@)">
+            <summary>Tries to read the DICOM file header from a stream</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomFileFormat.WriteHeader(MDSDK.BinaryIO.BufferedStreamWriter,MDSDK.Dicom.Serialization.DicomFileMetaInformation)">
+            <summary>Writes a DICOM file header to a stream</summary>
         </member>
         <member name="T:MDSDK.Dicom.Serialization.DicomFileMetaInformation">
             <summary>File meta information as defined in Part 7 of the DICOM standard</summary>
+        </member>
+        <member name="T:MDSDK.Dicom.Serialization.DicomSerializer">
+            <summary>Provided methods for serializing and deserializing C# objects to and from DICOM</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomSerializer.Deserialize(MDSDK.Dicom.Serialization.DicomStreamReader)">
+            <summary>Deserializes a C# object from a DICOM data stream</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomSerializer.Serialize(MDSDK.Dicom.Serialization.DicomStreamWriter,System.Object)">
+            <summary>Serializes a C# object to a DICOM data stream</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomSerializer.TryGetSerializedLength(System.Object,MDSDK.Dicom.Serialization.DicomVRCoding,System.Int64@)">
+            <summary>Tries to calculate the length of the resulting DICOM data stream when the given object is serialized using the given VR coding</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomSerializer.GetSerializer``1">
+            <summary>Returns a DicomSerializer that can be used to serialize and deserialize C# objects of type T to and from DICOM</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomSerializer.Deserialize``1(MDSDK.BinaryIO.BufferedStreamReader,MDSDK.Dicom.Serialization.DicomUID)">
+            <summary>Deserialize a C# object of type T from a DICOM data stream using the given transfer syntax</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomSerializer.Serialize``1(MDSDK.BinaryIO.BufferedStreamWriter,MDSDK.Dicom.Serialization.DicomUID,``0)">
+            <summary>Serializes a C# object of type T to a DICOM data stream using the given transfer syntax</summary>
+        </member>
+        <member name="T:MDSDK.Dicom.Serialization.DicomSerializer`1">
+            <summary>Provided methods for serializing and deserializing C# objects of type T to and from DICOM</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomSerializer`1.Deserialize(MDSDK.Dicom.Serialization.DicomStreamReader)">
+            <summary>Deserializes a C# object of type T from a DICOM data stream</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomSerializer`1.Serialize(MDSDK.Dicom.Serialization.DicomStreamWriter,`0)">
+            <summary>Serializes a C# object of type T to a DICOM data stream</summary>
+        </member>
+        <member name="T:MDSDK.Dicom.Serialization.DicomStreamReader">
+            <summary>Provides methods for reading DICOM data elements from a stream using a given transfer syntax</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomStreamReader.Create(MDSDK.BinaryIO.BufferedStreamReader,MDSDK.Dicom.Serialization.DicomUID)">
+            <summary>Creates a DicomStreamReader for reading DICOM data elements from a stream using the given transfer syntax</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Serialization.DicomStreamReader.Input">
+            <summary>The stream from which the DicomStreamReader reads the DICOM data elements</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Serialization.DicomStreamReader.VRCoding">
+            <summary>The VR coding used to read DICOM data elements</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomStreamReader.TrySkipToPixelData(System.UInt32@)">
+            <summary>Tries to skip to the value field of the PixelData attribute, if present</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomStreamReader.ReadEncapsulatedPixelDataFramePositions(System.Int64[])">
+            <summary>Reads the positions of the encapsulated pixel data frames relative to the start of the input stream</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomStreamReader.ReadEncapsulatedPixelDataFrame(System.Action{MDSDK.BinaryIO.BufferedStreamReader})">
+            <summary>Reads the contents of an encapsulated pixel data frame using the given frame decoder</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomStreamReader.ReadDataSet``1(``0,MDSDK.Dicom.Serialization.DicomDataConsumer{``0})">
+            <summary>Reads a user defined data set using the given DicomDataConsumer implementation</summary>
+        </member>
+        <member name="T:MDSDK.Dicom.Serialization.DicomStreamWriter">
+            <summary>Provides methods for reading DICOM data elements to a stream using a given transfer syntax</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomStreamWriter.Create(MDSDK.BinaryIO.BufferedStreamWriter,MDSDK.Dicom.Serialization.DicomUID)">
+            <summary>Creates a DicomStreamWriter for writing DICOM data elements to a stream using the given transfer syntax</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Serialization.DicomStreamWriter.Output">
+            <summary>The stream to which the DicomStreamWriter writes the DICOM data elements</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Serialization.DicomStreamWriter.VRCoding">
+            <summary>The VR coding used to write DICOM data elements</summary>
+        </member>
+        <member name="T:MDSDK.Dicom.Serialization.DicomTag">
+            <summary>DICOM tag</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Serialization.DicomTag.GroupNumber">
+            <summary>The group number of the DICOM tag</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Serialization.DicomTag.ElementNumber">
+            <summary>The element number of the DICOM tag</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomTag.#ctor(System.UInt16,System.UInt16)">
+            <summary>Creates a DICOM tag from the given group and element number</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Serialization.DicomTag.IsPrivate">
+            <summary>Indicates whether this is a private tag</summary>
+        </member>
+        <member name="T:MDSDK.Dicom.Serialization.DicomUID">
+            <summary>Well-known DICOM UIDs</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Serialization.DicomUID.Name">
+            <summary>The name of the DICOM UID</summary>
+        </member>
+        <member name="T:MDSDK.Dicom.Serialization.DicomVRCoding">
+            <summary>A type that indicates whether DICOM data elements are coded with or without VR</summary>
+        </member>
+        <member name="F:MDSDK.Dicom.Serialization.DicomVRCoding.Implicit">
+            <summary>DICOM data elements are coded without VR</summary>
+        </member>
+        <member name="F:MDSDK.Dicom.Serialization.DicomVRCoding.Explicit">
+            <summary>DICOM data elements are coded with VR</summary>
         </member>
         <member name="T:MDSDK.Dicom.Serialization.Properties.Resources">
             <summary>

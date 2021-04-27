@@ -2,11 +2,11 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public interface ISingleValue
+    internal interface ISingleValue
     {
     }
 
-    public interface ISingleValue<T> : ISingleValue
+    internal interface ISingleValue<T> : ISingleValue
     {
         T ReadValue(DicomStreamReader dicomStreamReader);
 

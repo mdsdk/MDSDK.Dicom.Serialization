@@ -10,21 +10,25 @@ using System.IO;
 
 namespace MDSDK.Dicom.Serialization
 {
+    /// <summary>Provides methods for reading DICOM data elements from a stream using a given transfer syntax</summary>
     public class DicomStreamReader
     {
+        /// <summary>Creates a DicomStreamReader for reading DICOM data elements from a stream using the given transfer syntax</summary>
         public static DicomStreamReader Create(BufferedStreamReader input, DicomUID transferSyntaxUID)
         {
             var transferSyntax = new DicomTransferSyntax(transferSyntaxUID);
             return new DicomStreamReader(input, transferSyntax);
         }
 
+        /// <summary>The stream from which the DicomStreamReader reads the DICOM data elements</summary>
         public BufferedStreamReader Input { get; }
 
         internal DicomTransferSyntax TransferSyntax { get; }
 
-        public BinaryDataReader DataReader { get; }
+        internal BinaryDataReader DataReader { get; }
 
-        internal DicomVRCoding VRCoding { get; }
+        /// <summary>The VR coding used to read DICOM data elements</summary>
+        public DicomVRCoding VRCoding { get; }
 
         internal DicomStreamReader(BufferedStreamReader input, DicomTransferSyntax transferSyntax)
         {
@@ -272,7 +276,8 @@ namespace MDSDK.Dicom.Serialization
             EndReadValue();
         }
 
-        public bool SkipToPixelData(out uint valueLength)
+        /// <summary>Tries to skip to the value field of the PixelData attribute, if present</summary>
+        public bool TrySkipToPixelData(out uint valueLength)
         {
             // Note that TrySeek will throw if the stream contains any tag in the pixel data group (0x7FE0) before the PixelData tag.
             // This to prevent accidental mis-interpretation of the pixel data.
@@ -325,9 +330,10 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
+        /// <summary>Reads the positions of the encapsulated pixel data frames relative to the start of the input stream</summary>
         public void ReadEncapsulatedPixelDataFramePositions(long[] framePositions)
         {
-            if (!SkipToPixelData(out uint valueLength))
+            if (!TrySkipToPixelData(out uint valueLength))
             {
                 throw new Exception($"Missing PixelData");
             }
@@ -356,6 +362,7 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
+        /// <summary>Reads the contents of an encapsulated pixel data frame using the given frame decoder</summary>
         public void ReadEncapsulatedPixelDataFrame(Action<BufferedStreamReader> decodeFrame)
         {
             if (!TryReadItemTagOfSequenceWithUndefinedLength())
@@ -418,6 +425,7 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
+        /// <summary>Reads a user defined data set using the given DicomDataConsumer implementation</summary>
         public void ReadDataSet<TDataSet>(TDataSet dataSet, DicomDataConsumer<TDataSet> consumer)
         {
             Debug.Assert(CurrentTag == DicomTag.Undefined);

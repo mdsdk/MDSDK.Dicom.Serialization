@@ -2,11 +2,11 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public interface IMultiValue
+    internal interface IMultiValue
     {
     }
     
-    public interface IMultiValue<T> : IMultiValue
+    internal interface IMultiValue<T> : IMultiValue
     {
         T[] ReadValues(DicomStreamReader reader);
 
