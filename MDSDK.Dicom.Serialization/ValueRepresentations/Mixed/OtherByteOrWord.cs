@@ -4,7 +4,7 @@ using System;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations.Mixed
 {
-    public class OtherByteOrWord : ValueRepresentation, ISingleValue<Array>, IHas32BitExplicitVRLength, IMayHaveUndefinedLength, IMixedValueRepresentation
+    internal sealed class OtherByteOrWord : ValueRepresentation, ISingleValue<Array>, IHas32BitExplicitVRLength, IMayHaveUndefinedLength, IMixedValueRepresentation
     {
         public OtherByteOrWord() : base("OB or OW") { }
 

@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations.Extensions
 {
-    public class EnumUnsignedShort<T> : UnsignedShort, IMultiValue<T>, IHasLightWeightValueLengthCalculation<T> where T : unmanaged, Enum
+    internal sealed class EnumUnsignedShort<T> : UnsignedShort, IMultiValue<T>, IHasLightWeightValueLengthCalculation<T> where T : unmanaged, Enum
     {
         private static readonly Dictionary<ushort, T> UshortToEnum = new();
         

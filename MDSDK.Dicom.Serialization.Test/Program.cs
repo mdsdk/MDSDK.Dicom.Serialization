@@ -10,10 +10,9 @@ namespace MDSDK.Dicom.Serialization.Test
         static void Main()
         {
             Console.OutputEncoding = Encoding.Unicode;
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             DicomStringDecoderTest.Run();
-            // DicomSerializerTest.Run();
+            DicomSerializerTest.Run();
         }
     }
 }

@@ -5,51 +5,52 @@ using MDSDK.Dicom.Serialization.ValueRepresentations.Mixed;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 
 namespace MDSDK.Dicom.Serialization
 {
-    public static class DicomVR
+    internal static class DicomVR
     {
-        public static readonly ApplicationEntity AE = new();
-        public static readonly AgeString AS = new();
-        public static readonly AttributeTag AT = new();
-        public static readonly CodeString CS = new();
-        public static readonly Date DA = new();
-        public static readonly DecimalString DS = new();
-        public static readonly DateTime DT = new();
-        public static readonly FloatingPointSingle FL = new();
-        public static readonly FloatingPointDouble FD = new();
-        public static readonly IntegerString IS = new();
-        public static readonly LongString LO = new();
-        public static readonly LongText LT = new();
-        public static readonly OtherByte OB = new();
-        public static readonly OtherDouble OD = new();
-        public static readonly OtherFloat OF = new();
-        public static readonly OtherLong OL = new();
-        public static readonly OtherVeryLong OV = new();
-        public static readonly OtherWord OW = new();
-        public static readonly PersonName PN = new();
-        public static readonly ShortString SH = new();
-        public static readonly SignedLong SL = new();
-        public static readonly Sequence<object> SQ = new();
-        public static readonly SignedShort SS = new();
-        public static readonly ShortText ST = new();
-        public static readonly SignedVeryLong SV = new();
-        public static readonly Time TM = new();
-        public static readonly UnlimitedCharacters UC = new();
-        public static readonly UniqueIdentifier UI = new();
-        public static readonly UnsignedLong UL = new();
-        public static readonly Unknown UN = new();
-        public static readonly UniversalResourceIdentifier UR = new();
-        public static readonly UnsignedShort US = new();
-        public static readonly UnlimitedText UT = new();
-        public static readonly UnsignedVeryLong UV = new();
+        internal static readonly ApplicationEntity AE = new();
+        internal static readonly AgeString AS = new();
+        internal static readonly AttributeTag AT = new();
+        internal static readonly CodeString CS = new();
+        internal static readonly Date DA = new();
+        internal static readonly DecimalString DS = new();
+        internal static readonly DateTime DT = new();
+        internal static readonly FloatingPointSingle FL = new();
+        internal static readonly FloatingPointDouble FD = new();
+        internal static readonly IntegerString IS = new();
+        internal static readonly LongString LO = new();
+        internal static readonly LongText LT = new();
+        internal static readonly OtherByte OB = new();
+        internal static readonly OtherDouble OD = new();
+        internal static readonly OtherFloat OF = new();
+        internal static readonly OtherLong OL = new();
+        internal static readonly OtherVeryLong OV = new();
+        internal static readonly OtherWord OW = new();
+        internal static readonly PersonName PN = new();
+        internal static readonly ShortString SH = new();
+        internal static readonly SignedLong SL = new();
+        internal static readonly Sequence<object> SQ = new();
+        internal static readonly SignedShort SS = new();
+        internal static readonly ShortText ST = new();
+        internal static readonly SignedVeryLong SV = new();
+        internal static readonly Time TM = new();
+        internal static readonly UnlimitedCharacters UC = new();
+        internal static readonly UniqueIdentifier UI = new();
+        internal static readonly UnsignedLong UL = new();
+        internal static readonly Unknown UN = new();
+        internal static readonly UniversalResourceIdentifier UR = new();
+        internal static readonly UnsignedShort US = new();
+        internal static readonly UnlimitedText UT = new();
+        internal static readonly UnsignedVeryLong UV = new();
 
         internal static class Mixed
         {
-            public static readonly OtherByteOrWord OB_or_OW = new();
-            public static readonly UnsignedOrSignedShort US_or_SS = new();
-            public static readonly UnsignedShortOrOtherWord US_or_OW = new();
+            internal static readonly OtherByteOrWord OB_or_OW = new();
+            internal static readonly UnsignedOrSignedShort US_or_SS = new();
+            internal static readonly UnsignedShortOrOtherWord US_or_OW = new();
         }
 
         private static readonly Dictionary<System.ValueTuple<byte, byte>, ValueRepresentation> s_vrMap;
@@ -76,7 +77,7 @@ namespace MDSDK.Dicom.Serialization
 
             s_vrMap = new Dictionary<System.ValueTuple<byte, byte>, ValueRepresentation>();
 
-            foreach (var field in typeof(DicomVR).GetFields())
+            foreach (var field in typeof(DicomVR).GetFields(BindingFlags.Static | BindingFlags.NonPublic))
             {
                 if (typeof(ValueRepresentation).IsAssignableFrom(field.FieldType))
                 {
@@ -93,9 +94,16 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
-        public static ValueRepresentation Lookup(System.ValueTuple<byte, byte> id)
+        internal static ValueRepresentation Lookup(System.ValueTuple<byte, byte> id)
         {
             return s_vrMap[id];
+        }
+
+        internal static ValueRepresentation Lookup(string id)
+        {
+            var b0 = (byte)id[0];
+            var b1 = (byte)id[1];
+            return Lookup(new System.ValueTuple<byte, byte>(b0, b1));
         }
     }
 }

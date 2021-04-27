@@ -2,7 +2,7 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class ShortString : SpecificCharsetEncodedMultiValue, IHas16BitExplicitVRLength
+    internal sealed class ShortString : SpecificCharsetEncodedMultiValue, IHas16BitExplicitVRLength
     {
         public ShortString() : base("SH") { }
     }

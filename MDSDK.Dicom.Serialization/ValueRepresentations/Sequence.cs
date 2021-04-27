@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public sealed class Sequence<T> : ValueRepresentation, ISingleValue<List<T>>, IHas32BitExplicitVRLength, IMayHaveUndefinedLength
+    internal sealed class Sequence<T> : ValueRepresentation, ISingleValue<List<T>>, IHas32BitExplicitVRLength, IMayHaveUndefinedLength
         where T : new()
     {
         private readonly DicomSerializer<T> _serializer;
@@ -22,16 +22,9 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             return items;
         }
 
-        /*
-        internal override string ToString(DicomStreamReader dicomStreamReader)
-        {
-            throw new NotImplementedException();
-        }
-        */
-
         internal override object GetValue(DicomStreamReader reader)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public void WriteValue(DicomStreamWriter writer, List<T> value)

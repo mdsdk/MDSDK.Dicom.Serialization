@@ -2,8 +2,11 @@
 
 namespace MDSDK.Dicom.Serialization
 {
+    /// <summary>File meta information as defined in Part 7 of the DICOM standard</summary>
     public class DicomFileMetaInformation
     {
+#pragma warning disable CS1591
+
         public string Media​StorageSOP​ClassUID { get; set; }
 
         public string Media​StorageSOP​InstanceUID { get; set; }
@@ -19,5 +22,7 @@ namespace MDSDK.Dicom.Serialization
         public string PrivateInformationCreatorUID { get; set; }
 
         public byte[] PrivateInformation { get; set; }
+
+#pragma warning restore
     }
 }

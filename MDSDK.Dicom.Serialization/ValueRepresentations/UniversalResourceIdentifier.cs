@@ -2,7 +2,7 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class UniversalResourceIdentifier : AsciiEncodedSingleValue, IHas32BitExplicitVRLength
+    internal sealed class UniversalResourceIdentifier : AsciiEncodedSingleValue, IHas32BitExplicitVRLength
     {
         public UniversalResourceIdentifier() : base("UR") { }
     }

@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
+using MDSDK.Dicom.Serialization.Internal;
 using System;
 using System.Text;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public abstract class SpecificCharsetEncodedValue : ValueRepresentation, IHasDefinedLengthOnly
+    internal abstract class SpecificCharsetEncodedValue : ValueRepresentation, IHasDefinedLengthOnly
     {
         internal SpecificCharsetEncodedValue(string vr) : base(vr) { }
 
@@ -14,7 +15,7 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             var valueLength = GetDefinedValueLength(reader);
             var bytes = reader.Input.ReadBytes(valueLength);
             reader.EndReadValue();
-            var encoding = reader.EncodedStringDecoder ?? DicomStringDecoder.Default;
+            var encoding = reader.EncodedStringDecoder ?? StringDecoder.Default;
             return encoding.Decode(this, TrimEnd(bytes));
         }
 

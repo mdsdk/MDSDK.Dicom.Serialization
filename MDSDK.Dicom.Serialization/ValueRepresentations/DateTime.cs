@@ -2,7 +2,7 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class DateTime : AsciiEncodedMultiValue
+    internal sealed class DateTime : AsciiEncodedMultiValue
     {
         public DateTime() : base("DT") { }
     }

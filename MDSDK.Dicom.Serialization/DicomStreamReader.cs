@@ -1,32 +1,44 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
 using MDSDK.BinaryIO;
+using MDSDK.Dicom.Serialization.Internal;
 using MDSDK.Dicom.Serialization.ValueRepresentations;
 using System;
 using System.Buffers;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 
 namespace MDSDK.Dicom.Serialization
 {
     public class DicomStreamReader
     {
-        public DicomVRCoding VRCoding { get; init; }
-
-        public BinaryStreamReader Input { get; init; }
-
-        public DicomStreamReader(DicomVRCoding vrCoding, BinaryStreamReader input)
+        public static DicomStreamReader Create(BufferedStreamReader input, DicomUID transferSyntaxUID)
         {
-            VRCoding = vrCoding;
-            Input = input;
+            var transferSyntax = new DicomTransferSyntax(transferSyntaxUID);
+            return new DicomStreamReader(input, transferSyntax);
         }
 
-        internal DicomStringDecoder EncodedStringDecoder { get; private set; }
+        public BufferedStreamReader Input { get; }
+
+        internal DicomTransferSyntax TransferSyntax { get; }
+
+        public BinaryDataReader DataReader { get; }
+
+        internal DicomVRCoding VRCoding { get; }
+
+        internal DicomStreamReader(BufferedStreamReader input, DicomTransferSyntax transferSyntax)
+        {
+            Input = input;
+            TransferSyntax = transferSyntax;
+            DataReader = new BinaryDataReader(input, transferSyntax.ByteOrder);
+            VRCoding = transferSyntax.VRCoding;
+        }
+
+        internal StringDecoder EncodedStringDecoder { get; private set; }
 
         private DicomStreamReader CreateNestedReader()
         {
-            return new DicomStreamReader(VRCoding, Input)
+            return new DicomStreamReader(Input, TransferSyntax)
             {
                 EncodedStringDecoder = EncodedStringDecoder
             };
@@ -34,11 +46,11 @@ namespace MDSDK.Dicom.Serialization
 
         private const uint UndefinedLength = uint.MaxValue;
 
-        public DicomTag CurrentTag { get; private set; } = DicomTag.Undefined;
+        internal DicomTag CurrentTag { get; private set; } = DicomTag.Undefined;
 
-        public ValueRepresentation ExplicitVR { get; private set; }
+        internal ValueRepresentation ExplicitVR { get; private set; }
 
-        public uint ValueLength { get; private set; }
+        internal uint ValueLength { get; private set; }
 
         private void ReadTagVRLength()
         {
@@ -47,7 +59,7 @@ namespace MDSDK.Dicom.Serialization
                 throw new InvalidOperationException($"Reading of {CurrentTag} not completed");
             }
 
-            CurrentTag = DicomTag.ReadFrom(Input);
+            CurrentTag = DicomTag.ReadFrom(DataReader);
 
             if (CurrentTag.GroupNumber == 0xFFFF)
             {
@@ -56,23 +68,23 @@ namespace MDSDK.Dicom.Serialization
 
             if (CurrentTag.HasVR && (VRCoding == DicomVRCoding.Explicit))
             {
-                var b0 = Input.ReadByte();
-                var b1 = Input.ReadByte();
+                DataReader.Read(out byte b0);
+                DataReader.Read(out byte b1);
                 var id = new ValueTuple<byte, byte>(b0, b1);
                 ExplicitVR = DicomVR.Lookup(id);
                 if (ExplicitVR is IHas16BitExplicitVRLength)
                 {
-                    ValueLength = Input.Read<UInt16>();
+                    ValueLength = DataReader.Read<UInt16>();
                 }
                 else
                 {
                     Input.SkipBytes(2);
-                    ValueLength = Input.Read<UInt32>();
+                    ValueLength = DataReader.Read<UInt32>();
                 }
             }
             else
             {
-                ValueLength = Input.Read<UInt32>();
+                ValueLength = DataReader.Read<UInt32>();
                 if (CurrentTag.IsDelimitationItem && (ValueLength != 0))
                 {
                     throw new IOException($"Expected 0 length for {CurrentTag} but got {ValueLength}");
@@ -125,7 +137,7 @@ namespace MDSDK.Dicom.Serialization
 
         internal void ApplySpecfificCharacterSet(string[] values)
         {
-            EncodedStringDecoder = DicomStringDecoder.Get(values);
+            EncodedStringDecoder = StringDecoder.Get(values);
         }
 
         private static bool IsLegacyGroupLengthTag(DicomTag tag) => tag.ElementNumber == 0x000;
@@ -294,7 +306,7 @@ namespace MDSDK.Dicom.Serialization
 
             for (var i = 0; i < numberOfFrames; i++)
             {
-                var offset = Input.Read<UInt32>();
+                var offset = DataReader.Read<UInt32>();
                 framePositions[i] = positionOfFirstItemTagOfFirstFrameAfterBasicOffsetTable + offset;
             }
         }
@@ -344,7 +356,7 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
-        public void ReadEncapsulatedPixelDataFrame(Action<BinaryStreamReader> decodeFrame)
+        public void ReadEncapsulatedPixelDataFrame(Action<BufferedStreamReader> decodeFrame)
         {
             if (!TryReadItemTagOfSequenceWithUndefinedLength())
             {
@@ -378,12 +390,12 @@ namespace MDSDK.Dicom.Serialization
             }
             else
             {
-                if (Input.BytesRemaining > int.MaxValue)
+                if (DataReader.BytesRemaining > int.MaxValue)
                 {
-                    throw new NotSupportedException($"Multi-fragment frame length {Input.BytesRemaining} not supported");
+                    throw new NotSupportedException($"Multi-fragment frame length {DataReader.BytesRemaining} not supported");
                 }
 
-                var buffer = ArrayPool<byte>.Shared.Rent((int)Input.BytesRemaining);
+                var buffer = ArrayPool<byte>.Shared.Rent((int)DataReader.BytesRemaining);
                 try
                 {
                     var n = 0;
@@ -396,7 +408,7 @@ namespace MDSDK.Dicom.Serialization
                     }
                     while (TryReadItemTagOfSequenceWithUndefinedLength());
 
-                    var bufferReader = new BinaryStreamReader(Input.ByteOrder, buffer, n);
+                    var bufferReader = new BufferedStreamReader(buffer, n);
                     decodeFrame.Invoke(bufferReader);
                 }
                 finally
@@ -418,18 +430,19 @@ namespace MDSDK.Dicom.Serialization
                 {
                     break;
                 }
+                
+                DicomAttribute.TryLookup(CurrentTag, out DicomAttribute attribute);
 
-                var tagConsumptionOptions = consumer.GetOptions(CurrentTag);
+                var vr = ExplicitVR ?? attribute?.ImplicitVR;
 
-                if (tagConsumptionOptions.HasFlag(DicomTagConsumptionOptions.Skip))
+                var dataConsumptionOptions = consumer.GetOptions(CurrentTag, vr?.Name);
+
+                if (dataConsumptionOptions.HasFlag(DicomDataConsumptionOptions.Skip))
                 {
                     SkipValue();
                 }
                 else
                 {
-                    DicomAttribute.TryLookup(CurrentTag, out DicomAttribute attribute);
-
-                    var vr = ExplicitVR ?? attribute?.ImplicitVR;
                     if (vr == null)
                     {
                         consumer.SkippedValueWithUnknownVR(dataSet, CurrentTag, attribute);
@@ -456,7 +469,7 @@ namespace MDSDK.Dicom.Serialization
                             consumer.SkippedValueWithUndefinedLength(dataSet, CurrentTag, attribute);
                             SkipItemsOfSequenceWithUndefinedLength();
                         }
-                        else if (tagConsumptionOptions.HasFlag(DicomTagConsumptionOptions.RawValue))
+                        else if (dataConsumptionOptions.HasFlag(DicomDataConsumptionOptions.RawValue))
                         {
                             var rawValue = Input.ReadBytes(ValueLength);
                             consumer.ConsumeValue(dataSet, CurrentTag, attribute, rawValue);

@@ -1,0 +1,123 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>MDSDK.Dicom.Serialization</name>
+    </assembly>
+    <members>
+        <member name="T:MDSDK.Dicom.Serialization.DicomAttribute">
+            <summary>DICOM attribute</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Serialization.DicomAttribute.Name">
+            <summary>The name of the attribute</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Serialization.DicomAttribute.Tag">
+            <summary>The tag of the attribute</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Serialization.DicomAttribute.VRs">
+            <summary>The value represenation(s) of the attribute</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Serialization.DicomAttribute.Keyword">
+            <summary>The keyword of the attribute</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomAttribute.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="T:MDSDK.Dicom.Serialization.DicomAttributeAttribute">
+            <summary>Allows a property to be mapped to a DICOM attribute</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomAttributeAttribute.#ctor(System.UInt16,System.UInt16,System.String)">
+            <summary>Maps a property to a DICOM attribute</summary>
+        </member>
+        <member name="T:MDSDK.Dicom.Serialization.DicomDataConsumptionOptions">
+            <summary>Return value of <see cref="M:MDSDK.Dicom.Serialization.DicomDataConsumer`1.GetOptions(MDSDK.Dicom.Serialization.DicomTag,System.String)"/></summary>
+        </member>
+        <member name="F:MDSDK.Dicom.Serialization.DicomDataConsumptionOptions.Skip">
+            <summary>Skip the attribute</summary>
+        </member>
+        <member name="F:MDSDK.Dicom.Serialization.DicomDataConsumptionOptions.RawValue">
+            <summary>Return the raw value of the attribute without converting to its value representation</summary>
+        </member>
+        <member name="T:MDSDK.Dicom.Serialization.DicomDataConsumer`1">
+            <summary>Base class for consuming DICOM data into a generic dataset</summary>
+        </member>
+        <member name="T:MDSDK.Dicom.Serialization.DicomDataConsumer`1.ISequenceItemConsumer">
+            <summary>Interface for consuming sequence items</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomDataConsumer`1.ISequenceItemConsumer.AddItem(`0)">
+            <summary>Adds an item to the sequence</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomDataConsumer`1.GetOptions(MDSDK.Dicom.Serialization.DicomTag,System.String)">
+            <summary>Returns options that control data consumption</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomDataConsumer`1.SkippedValueWithUnknownVR(`0,MDSDK.Dicom.Serialization.DicomTag,MDSDK.Dicom.Serialization.DicomAttribute)">
+            <summary>Called when an attribute with unknown value representation is skipped</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomDataConsumer`1.SkippedValueWithUndefinedLength(`0,MDSDK.Dicom.Serialization.DicomTag,MDSDK.Dicom.Serialization.DicomAttribute)">
+            <summary>Called when a non-sequence attribute with undefined length is skipped</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomDataConsumer`1.ConsumeValue(`0,MDSDK.Dicom.Serialization.DicomTag,MDSDK.Dicom.Serialization.DicomAttribute,System.Object)">
+            <summary>Called to consume an attribute and its value</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomDataConsumer`1.CreateSequenceItemConsumer(`0,MDSDK.Dicom.Serialization.DicomTag,MDSDK.Dicom.Serialization.DicomAttribute)">
+            <summary>Called to consume an sequence attribute</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomDataConsumer`1.CreateItem">
+            <summary>Called to create a dataset for a sequence item</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomDataConsumer`1.Dipose">
+            <inheritdoc/>
+        </member>
+        <member name="T:MDSDK.Dicom.Serialization.DicomFileFormat">
+            <summary>Provides methods for reading and writing DICOM files</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomFileFormat.WriteHeader(System.IO.Stream,MDSDK.Dicom.Serialization.DicomFileMetaInformation)">
+            <summary>Writes a DICOM file header</summary>
+        </member>
+        <member name="T:MDSDK.Dicom.Serialization.DicomFileMetaInformation">
+            <summary>File meta information as defined in Part 7 of the DICOM standard</summary>
+        </member>
+        <member name="T:MDSDK.Dicom.Serialization.Properties.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Serialization.Properties.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Serialization.Properties.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Serialization.Properties.Resources.AttributeNames">
+             <summary>
+               Looks up a localized string similar to Command Group Length
+            Affected SOP Class UID
+            Requested SOP Class UID
+            Command Field
+            Message ID
+            Message ID Being Responded To
+            Move Destination
+            Priority
+            Command Data Set Type
+            Status
+            Offending Element
+            Error Comment
+            Error ID
+            Affected SOP Instance UID
+            Requested SOP Instance UID
+            Event Type ID
+            Attribute Identifier List
+            Action Type ID
+            Number of Remaining Sub-operations
+            Number of Completed Sub-operations
+            Number of Failed Sub-operations
+            Number of Warning Sub-operations
+            Move Originator Application  [rest of string was truncated]&quot;;.
+             </summary>
+        </member>
+    </members>
+</doc>

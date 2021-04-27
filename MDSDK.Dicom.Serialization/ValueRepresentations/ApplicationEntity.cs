@@ -2,7 +2,7 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class ApplicationEntity : AsciiEncodedMultiValue
+    internal sealed class ApplicationEntity : AsciiEncodedMultiValue
     {
         public ApplicationEntity() : base("AE") { }
     }

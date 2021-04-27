@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class BinaryEncodedPrimitiveValue<T> : BinaryEncodedPrimitiveValueBase<T>, IMultiValue<T>, IHasDefinedLengthOnly 
+    internal class BinaryEncodedPrimitiveValue<T> : BinaryEncodedPrimitiveValueBase<T>, IMultiValue<T>, IHasDefinedLengthOnly 
         where T : unmanaged, IFormattable
     {
         internal BinaryEncodedPrimitiveValue(string vr) : base(vr) { }
@@ -15,7 +15,7 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
         public T ReadSingleValue(DicomStreamReader reader)
         {
             EnsureSingleValue<T>(reader);
-            var result = reader.Input.Read<T>();
+            var result = reader.DataReader.Read<T>();
             reader.EndReadValue();
             return result;
         }
@@ -44,7 +44,7 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
         public void WriteSingleValue(DicomStreamWriter writer, T value)
         {
             writer.WriteVRWithDefinedValueLength(this, Unsafe.SizeOf<T>(), out _);
-            writer.Output.Write<T>(value);
+            writer.DataWriter.Write(value);
         }
 
         internal void ConvertAndWriteValues<T2>(DicomStreamWriter writer, Func<T2, T> convert, T2[] values)

@@ -17,7 +17,7 @@ namespace MDSDK.Dicom.Serialization
             s_names.Add(uid, name);
         }
 
-        public string Name => (_uid == null) ? null : s_names.TryGetValue(_uid, out string name) ? name : string.Empty;
+        public string Name => (_uid == null) ? null : s_names.TryGetValue(_uid, out string name) ? name : _uid;
 
         private DicomUID(string uid)
         {
@@ -39,6 +39,8 @@ namespace MDSDK.Dicom.Serialization
         public static bool operator ==(DicomUID a, DicomUID b) => a._uid == b._uid;
 
         public static bool operator !=(DicomUID a, DicomUID b) => a._uid != b._uid;
+
+        public override string ToString() => Name;
 
         internal static class Retired
         {

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
+using MDSDK.BinaryIO;
 using System;
 using System.IO;
 using System.Net;
@@ -43,12 +44,13 @@ namespace MDSDK.Dicom.Serialization.Test
             {
                 using (var stream = OpenRead(relativePath))
                 {
-                    if (DicomFileReader.TryCreate(stream, out DicomFileReader dicomFileReader))
+                    var input = new BufferedStreamReader(stream);
+                    if (DicomFileFormat.TryReadHeader(input, out DicomFileMetaInformation fileMetaInformation))
                     {
-                        Console.WriteLine($"SOPClassUID = {dicomFileReader.MediaStorageSOPClassUID}");
-                        Console.WriteLine($"TransferSyntax = {dicomFileReader.TransferSyntax}");
+                        Console.WriteLine($"SOPClassUID = {fileMetaInformation.MediaStorageSOPClassUID}");
+                        Console.WriteLine($"TransferSyntax = {(DicomUID)fileMetaInformation.TransferSyntaxUID}");
 
-                        Console.WriteLine(JsonSerializer.Serialize(dicomFileReader.FileMetaInformation, new JsonSerializerOptions
+                        Console.WriteLine(JsonSerializer.Serialize(fileMetaInformation, new JsonSerializerOptions
                         {
                             WriteIndented = true
                         }));
@@ -58,7 +60,8 @@ namespace MDSDK.Dicom.Serialization.Test
 
                         var dataSet = new XElement("DicomDataSet");
                         dataSet.SetAttributeValue("Source", stream.Name);
-                        dicomFileReader.DataSetReader.ReadDataSet(dataSet, new DicomToXmlConverter());
+                        var dataSetReader = DicomStreamReader.Create(input, fileMetaInformation.TransferSyntaxUID);
+                        dataSetReader.ReadDataSet(dataSet, new DicomToXmlConverter());
                         dataSet.Save(xmlOutputPath);
                     }
                     else

@@ -4,7 +4,7 @@ using System;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class UnsignedShort : BinaryEncodedPrimitiveValue<UInt16>, IHas16BitExplicitVRLength, IMultiValue<int>
+    internal class UnsignedShort : BinaryEncodedPrimitiveValue<UInt16>, IHas16BitExplicitVRLength, IMultiValue<int>
     {
         public UnsignedShort() : base("US") { }
 

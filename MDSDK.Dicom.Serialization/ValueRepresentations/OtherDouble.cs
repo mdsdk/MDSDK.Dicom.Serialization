@@ -2,7 +2,7 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class OtherDouble : OtherBinaryEncodedPrimitiveValue<double>
+    internal sealed class OtherDouble : OtherBinaryEncodedPrimitiveValue<double>
     {
         public OtherDouble() : base("OD") { }
     }

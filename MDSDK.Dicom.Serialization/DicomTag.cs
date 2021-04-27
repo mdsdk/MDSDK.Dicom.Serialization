@@ -7,12 +7,12 @@ namespace MDSDK.Dicom.Serialization
 {
     public struct DicomTag : IEquatable<DicomTag>, IComparable<DicomTag>
     {
-        private readonly uint _value; 
+        private readonly uint _value;
 
         public ushort GroupNumber => (ushort)(_value >> 16);
 
         public ushort ElementNumber => (ushort)(_value & 0xFFFF);
-        
+
         public DicomTag(ushort groupNumber, ushort elementNumber)
         {
             _value = (uint)((groupNumber << 16) | elementNumber);
@@ -39,18 +39,18 @@ namespace MDSDK.Dicom.Serialization
         public static bool operator <=(DicomTag a, DicomTag b) => a._value <= b._value;
         public static bool operator >=(DicomTag a, DicomTag b) => a._value >= b._value;
 
-        internal static DicomTag ReadFrom(BinaryStreamReader input)
+        internal static DicomTag ReadFrom(BinaryDataReader input)
         {
-            var groupNumber = input.Read<UInt16>();
-            var elementNumber = input.Read<UInt16>();
+            input.Read(out ushort groupNumber);
+            input.Read(out ushort elementNumber);
             return new DicomTag(groupNumber, elementNumber);
         }
 
-        internal void WriteTo(BinaryStreamWriter output)
+        internal void WriteTo(BinaryDataWriter output)
         {
-            output.Write<UInt16>(GroupNumber);
-            output.Write<UInt16>(ElementNumber);
-        }        
+            output.Write(GroupNumber);
+            output.Write(ElementNumber);
+        }
 
         internal static readonly DicomTag CommandGroupLength = new DicomTag(0x0000, 0x0000);
         internal static readonly DicomTag SpecificCharacterSet = new DicomTag(0x0008, 0x0005);

@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
-using System.Collections.Generic;
-
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class AttributeTag : ValueRepresentation, IMultiValue<DicomTag>, IHas16BitExplicitVRLength,
+    internal sealed class AttributeTag : ValueRepresentation, IMultiValue<DicomTag>, IHas16BitExplicitVRLength,
         IHasLightWeightValueLengthCalculation<DicomTag>
     {
         public AttributeTag() : base("AT") { }
@@ -15,7 +13,7 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             var array = new DicomTag[count];
             for (var i = 0; i < count; i++)
             {
-                array[i] = DicomTag.ReadFrom(reader.Input);
+                array[i] = DicomTag.ReadFrom(reader.DataReader);
             }
             reader.EndReadValue();
             return array;
@@ -24,7 +22,7 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
         public DicomTag ReadSingleValue(DicomStreamReader reader)
         {
             EnsureSingleValue(reader, 4);
-            var tag = DicomTag.ReadFrom(reader.Input);
+            var tag = DicomTag.ReadFrom(reader.DataReader);
             reader.EndReadValue();
             return tag;
         }
@@ -36,14 +34,14 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
             writer.WriteVRWithDefinedValueLength(this, 4 * values.Length, out _);
             foreach (var value in values)
             {
-                value.WriteTo(writer.Output);
+                value.WriteTo(writer.DataWriter);
             }
         }
 
         public void WriteSingleValue(DicomStreamWriter writer, DicomTag value)
         {
             writer.WriteVRWithDefinedValueLength(this, 4, out _);
-            value.WriteTo(writer.Output);
+            value.WriteTo(writer.DataWriter);
         }
 
         long IHasLightWeightValueLengthCalculation<DicomTag>.GetUnpaddedValueLength(DicomTag value) => 4;

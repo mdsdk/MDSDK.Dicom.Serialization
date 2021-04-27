@@ -5,7 +5,7 @@ using System;
 
 namespace MDSDK.Dicom.Serialization
 {
-    public class DicomTransferSyntax : IEquatable<DicomTransferSyntax>
+    internal class DicomTransferSyntax : IEquatable<DicomTransferSyntax>
     {
         public DicomUID UID { get; }
 

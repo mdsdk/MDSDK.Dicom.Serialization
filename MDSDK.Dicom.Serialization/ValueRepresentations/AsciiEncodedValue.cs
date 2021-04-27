@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public abstract class AsciiEncodedValue : ValueRepresentation, IHasDefinedLengthOnly, 
+    internal abstract class AsciiEncodedValue : ValueRepresentation, IHasDefinedLengthOnly, 
         IHasLightWeightValueLengthCalculation<string>
     {
         internal AsciiEncodedValue(string vr) : base(vr) { }

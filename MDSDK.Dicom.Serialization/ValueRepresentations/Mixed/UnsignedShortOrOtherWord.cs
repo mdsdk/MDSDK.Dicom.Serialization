@@ -2,7 +2,7 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations.Mixed
 {
-    public class UnsignedShortOrOtherWord : OtherBinaryEncodedPrimitiveValue<ushort>, IMixedValueRepresentation
+    internal sealed class UnsignedShortOrOtherWord : OtherBinaryEncodedPrimitiveValue<ushort>, IMixedValueRepresentation
     {
         public UnsignedShortOrOtherWord() : base("US or OW") { }
 

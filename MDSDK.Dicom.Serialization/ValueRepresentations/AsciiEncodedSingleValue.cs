@@ -2,7 +2,7 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class AsciiEncodedSingleValue : AsciiEncodedValue, ISingleValue<string>, IHasDefinedLengthOnly
+    internal class AsciiEncodedSingleValue : AsciiEncodedValue, ISingleValue<string>, IHasDefinedLengthOnly
     {
         internal AsciiEncodedSingleValue(string vr) : base(vr) { }
 

@@ -4,7 +4,7 @@ using System;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class SignedShort : BinaryEncodedPrimitiveValue<Int16>, IHas16BitExplicitVRLength, IMultiValue<int>
+    internal class SignedShort : BinaryEncodedPrimitiveValue<Int16>, IHas16BitExplicitVRLength, IMultiValue<int>
     {
         public SignedShort() : base("SS") { }
 

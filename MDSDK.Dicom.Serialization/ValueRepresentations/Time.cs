@@ -2,7 +2,7 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class Time : AsciiEncodedMultiValue
+    internal sealed class Time : AsciiEncodedMultiValue
     {
         public Time() : base("TM") { }
     }

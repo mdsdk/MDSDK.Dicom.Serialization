@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
-using MDSDK.BinaryIO;
 using System;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class IntegerString : AsciiEncodedMultiValue, IMultiValue<int>
+    internal sealed class IntegerString : AsciiEncodedMultiValue, IMultiValue<int>
     {
         public IntegerString() : base("IS") { }
 

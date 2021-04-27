@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class SpecificCharsetEncodedMultiValue : SpecificCharsetEncodedValue, IMultiValue<string>
+    internal class SpecificCharsetEncodedMultiValue : SpecificCharsetEncodedValue, IMultiValue<string>
     {
         internal SpecificCharsetEncodedMultiValue(string vr) : base(vr) { }
 

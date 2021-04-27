@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations.Extensions
 {
-    public class EnumCodeString<T> : CodeString, IMultiValue<T>, IHasLightWeightValueLengthCalculation<T> where T : struct, Enum
+    internal sealed class EnumCodeString<T> : CodeString, IMultiValue<T>, IHasLightWeightValueLengthCalculation<T> where T : struct, Enum
     {
         private static T Convert(string s, NumberFormatInfo _) => Enum.Parse<T>(s);
 

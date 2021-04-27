@@ -225,20 +225,20 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
-        internal void DeserializeProperties(DicomStreamReader reader, object obj)
+        internal void DeserializeProperties(DicomStreamReader dicomStreamReader, object obj)
         {
             foreach (var (tag, propertySerializer) in _propertySerializers)
             {
-                if (reader.TrySeek(tag))
+                if (dicomStreamReader.TrySeek(tag))
                 {
-                    if ((reader.ValueLength == 0) && propertySerializer.NonNullablePropertyType.IsValueType)
+                    if ((dicomStreamReader.ValueLength == 0) && propertySerializer.NonNullablePropertyType.IsValueType)
                     {
-                        reader.EndReadValue();
+                        dicomStreamReader.EndReadValue();
                         propertySerializer.DicomProperty.SetValue(obj, null); // assign default value 
                     }
                     else
                     {
-                        var propertyValue = propertySerializer.DeserializePropertyValue.Invoke(reader);
+                        var propertyValue = propertySerializer.DeserializePropertyValue.Invoke(dicomStreamReader);
                         propertySerializer.DicomProperty.SetValue(obj, propertyValue);
                     }
                 }
@@ -249,15 +249,15 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
-        internal void SerializeProperties(DicomStreamWriter writer, object obj)
+        internal void SerializeProperties(DicomStreamWriter dicomStreamWriter, object obj)
         {
             foreach (var (tag, propertySerializer) in _propertySerializers)
             {
                 var propertyValue = propertySerializer.DicomProperty.GetValue(obj);
                 if (propertyValue != null)
                 {
-                    writer.WriteTag(tag);
-                    propertySerializer.SerializePropertyValue.Invoke(writer, propertyValue);
+                    dicomStreamWriter.WriteTag(tag);
+                    propertySerializer.SerializePropertyValue.Invoke(dicomStreamWriter, propertyValue);
                 }
             }
         }
@@ -321,22 +321,20 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
-        public static T Deserialize<T>(DicomTransferSyntax transferSyntax, Stream stream) where T : new()
+        public static T Deserialize<T>(BufferedStreamReader input, DicomUID transferSyntaxUID) where T : new()
         {
             var serializer = GetSerializer<T>();
-            var input = new BinaryStreamReader(transferSyntax.ByteOrder, stream);
-            var reader = new DicomStreamReader(transferSyntax.VRCoding, input);
+            var dicomStreamReader = DicomStreamReader.Create(input, transferSyntaxUID);
             var obj = new T();
-            serializer.DeserializeProperties(reader, obj);
+            serializer.DeserializeProperties(dicomStreamReader, obj);
             return obj;
         }
 
-        public static void Serialize<T>(DicomTransferSyntax transferSyntax, Stream stream, T obj)
+        public static void Serialize<T>(BufferedStreamWriter output, DicomUID transferSyntaxUID, T obj)
         {
             var serializer = GetSerializer<T>();
-            var output = new BinaryStreamWriter(transferSyntax.ByteOrder, stream);
-            var writer = new DicomStreamWriter(transferSyntax.VRCoding, output);
-            serializer.SerializeProperties(writer, obj);
+            var dicomStreamWriter = DicomStreamWriter.Create(output, transferSyntaxUID);
+            serializer.SerializeProperties(dicomStreamWriter, obj);
             output.Flush(FlushMode.Shallow);
         }
     }

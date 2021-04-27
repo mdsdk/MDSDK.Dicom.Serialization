@@ -2,7 +2,7 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class CodeString : AsciiEncodedMultiValue
+    internal class CodeString : AsciiEncodedMultiValue
     {
         public CodeString() : base("CS") { }
     }

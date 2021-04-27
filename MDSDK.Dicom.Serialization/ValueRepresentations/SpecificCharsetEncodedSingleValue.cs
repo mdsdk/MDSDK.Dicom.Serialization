@@ -2,7 +2,7 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class SpecificCharsetEncodedSingleValue : SpecificCharsetEncodedValue, ISingleValue<string>
+    internal class SpecificCharsetEncodedSingleValue : SpecificCharsetEncodedValue, ISingleValue<string>
     {
         internal SpecificCharsetEncodedSingleValue(string vr) : base(vr) { }
 

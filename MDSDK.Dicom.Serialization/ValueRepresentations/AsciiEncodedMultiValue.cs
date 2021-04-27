@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
-using MDSDK.BinaryIO;
 using System;
 using System.Linq;
 using System.Globalization;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class AsciiEncodedMultiValue : AsciiEncodedValue, IMultiValue<string>, IHas16BitExplicitVRLength
+    internal class AsciiEncodedMultiValue : AsciiEncodedValue, IMultiValue<string>, IHas16BitExplicitVRLength
     {
         internal AsciiEncodedMultiValue(string vr) : base(vr) { }
 

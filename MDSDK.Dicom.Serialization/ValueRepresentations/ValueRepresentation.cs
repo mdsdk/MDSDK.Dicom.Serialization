@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public abstract class ValueRepresentation
+    internal abstract class ValueRepresentation
     {
         public string Name { get; }
 

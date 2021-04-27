@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class UniqueIdentifier : AsciiEncodedMultiValue, IMultiValue<DicomUID>
+    internal sealed class UniqueIdentifier : AsciiEncodedMultiValue, IMultiValue<DicomUID>
     {
         public UniqueIdentifier() : base("UI") { }
 

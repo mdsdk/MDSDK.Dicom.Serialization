@@ -2,7 +2,7 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class OtherVeryLong : OtherBinaryEncodedPrimitiveValue<ulong>
+    internal sealed class OtherVeryLong : OtherBinaryEncodedPrimitiveValue<ulong>
     {
         public OtherVeryLong() : base("OV") { }
     }

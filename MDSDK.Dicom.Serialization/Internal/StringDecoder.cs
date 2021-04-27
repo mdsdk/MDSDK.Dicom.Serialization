@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
-using MDSDK.Dicom.Serialization.Internal;
 using MDSDK.Dicom.Serialization.ValueRepresentations;
 using System;
 using System.IO;
@@ -33,15 +32,21 @@ using System.Text;
 //     Appendix K "Character Sets and Person Name Value Representation in the Chinese Language with Code Extensions (Informative)"
 //     http://dicom.nema.org/medical/dicom/current/output/chtml/part05/chapter_K.html
 
-namespace MDSDK.Dicom.Serialization
+namespace MDSDK.Dicom.Serialization.Internal
 {
-    public abstract class DicomStringDecoder
+    internal abstract class StringDecoder
     {
+        private static Encoding GB18030Encoding { get; set; }
+        
+        static StringDecoder()
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            GB18030Encoding = Encoding.GetEncoding("GB18030");
+        }
+
         public abstract string Decode(ValueRepresentation vr, ReadOnlyMemory<byte> bytes);
 
-        internal static DicomStringDecoder Default { get; } = new SimpleDicomStringDecoder(Encoding.ASCII);
-
-        private static Encoding GB18030Encoding { get; } = Encoding.GetEncoding("GB18030");
+        internal static StringDecoder Default { get; } = new SimpleDicomStringDecoder(Encoding.ASCII);
 
         private static Encoding GetEncoding(string specificCharacterSet)
         {
@@ -72,34 +77,26 @@ namespace MDSDK.Dicom.Serialization
             return legacyEncodings;
         }
 
-        public static DicomStringDecoder Get(string[] specificCharacterSets)
+        public static StringDecoder Get(string[] specificCharacterSets)
         {
-            try
+            if ((specificCharacterSets == null) || (specificCharacterSets.Length == 0))
             {
-                if ((specificCharacterSets == null) || (specificCharacterSets.Length == 0))
-                {
-                    return Default;
-                }
-                else if (specificCharacterSets.Length == 1)
-                {
-                    var encoding = GetEncoding(specificCharacterSets[0]);
-                    return new SimpleDicomStringDecoder(encoding);
-                }
-                else
-                {
-                    var legacyEncodings = GetLegacyEncodings(specificCharacterSets);
-                    return new LegacyDicomStringDecoder(legacyEncodings);
-                }
+                return Default;
             }
-            catch (ArgumentException error)
+            else if (specificCharacterSets.Length == 1)
             {
-                throw new NotSupportedException(error.Message
-                    + ". Ensure to register System.Text.CodePagesEncodingProvider from System.Text.Encoding.CodePages.dll");
+                var encoding = GetEncoding(specificCharacterSets[0]);
+                return new SimpleDicomStringDecoder(encoding);
+            }
+            else
+            {
+                var legacyEncodings = GetLegacyEncodings(specificCharacterSets);
+                return new LegacyDicomStringDecoder(legacyEncodings);
             }
         }
     }
 
-    internal class SimpleDicomStringDecoder : DicomStringDecoder
+    internal class SimpleDicomStringDecoder : StringDecoder
     {
         internal Encoding Encoding { get; }
 
@@ -111,7 +108,7 @@ namespace MDSDK.Dicom.Serialization
         public override string Decode(ValueRepresentation vr, ReadOnlyMemory<byte> bytes) => Encoding.GetString(bytes.Span);
     }
 
-    internal class LegacyDicomStringDecoder : DicomStringDecoder
+    internal class LegacyDicomStringDecoder : StringDecoder
     {
         internal LegacyEncoding[] LegacyEncodings { get; }
 

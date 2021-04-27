@@ -5,7 +5,7 @@ using System;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class DecimalString : AsciiEncodedMultiValue, IMultiValue<decimal>, IMultiValue<double>, IMultiValue<float>
+    internal sealed class DecimalString : AsciiEncodedMultiValue, IMultiValue<decimal>, IMultiValue<double>, IMultiValue<float>
     {
         public DecimalString() : base("DS") { }
 

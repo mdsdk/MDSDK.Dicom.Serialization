@@ -4,7 +4,7 @@ using System;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class OtherBinaryEncodedPrimitiveValue<T> : BinaryEncodedPrimitiveValueBase<T>, ISingleValue<T[]>, IHas32BitExplicitVRLength, IMayHaveUndefinedLength 
+    internal class OtherBinaryEncodedPrimitiveValue<T> : BinaryEncodedPrimitiveValueBase<T>, ISingleValue<T[]>, IHas32BitExplicitVRLength, IMayHaveUndefinedLength 
         where T : unmanaged, IFormattable
     {
         internal OtherBinaryEncodedPrimitiveValue(string vr) : base(vr) { }

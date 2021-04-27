@@ -2,7 +2,7 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations.Mixed
 {
-    public class UnsignedOrSignedShort : ValueRepresentation, IMultiValue<int>, IHasLightWeightValueLengthCalculation<int>, IHas16BitExplicitVRLength, IMixedValueRepresentation
+    internal sealed class UnsignedOrSignedShort : ValueRepresentation, IMultiValue<int>, IHasLightWeightValueLengthCalculation<int>, IHas16BitExplicitVRLength, IMixedValueRepresentation
     {
         public UnsignedOrSignedShort() : base("US or SS") { }
 

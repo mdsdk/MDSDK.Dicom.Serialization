@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class OtherByte : OtherBinaryEncodedPrimitiveValue<byte>
+    internal sealed class OtherByte : OtherBinaryEncodedPrimitiveValue<byte>
     {
         public OtherByte() : base("OB") { }
 

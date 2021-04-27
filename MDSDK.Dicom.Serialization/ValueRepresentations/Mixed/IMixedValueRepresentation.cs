@@ -2,7 +2,7 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations.Mixed
 {
-    public interface IMixedValueRepresentation
+    internal interface IMixedValueRepresentation
     {
         ValueRepresentation DefaultVR { get; }
     }

@@ -2,7 +2,7 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class LongText : SpecificCharsetEncodedSingleValue, IHas16BitExplicitVRLength
+    internal sealed class LongText : SpecificCharsetEncodedSingleValue, IHas16BitExplicitVRLength
     {
         public LongText() : base("LT") { }
     }

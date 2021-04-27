@@ -10,16 +10,23 @@ namespace MDSDK.Dicom.Serialization
     using A = DicomAttribute;
     using V = DicomVR;
 
+    /// <summary>DICOM attribute</summary>
     public class DicomAttribute
     {
         private static readonly string[] AttributeNames = Properties.Resources.AttributeNames.Split();
 
+        /// <summary>The name of the attribute</summary>
         public string Name { get; }
 
+        /// <summary>The tag of the attribute</summary>
         public DicomTag Tag { get; }
 
-        public ValueRepresentation VR { get; }
+        internal ValueRepresentation VR { get; }
 
+        /// <summary>The value represenation(s) of the attribute</summary>
+        public string VRs => VR.Name;
+
+        /// <summary>The keyword of the attribute</summary>
         public string Keyword { get; private set; }
 
         internal DicomAttribute(string name, DicomTag tag, params ValueRepresentation[] vrs)
@@ -92,12 +99,15 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
-        public static bool TryLookup(DicomTag tag, out DicomAttribute attribute)
+        internal static bool TryLookup(DicomTag tag, out DicomAttribute attribute)
         {
             return s_lookupByTag.TryGetValue(tag, out attribute);
         }
 
+        /// <inheritdoc/>
         public override string ToString() => $"{Tag} {Keyword}";
+
+#pragma warning disable CS1591
 
         #region Attributes
 
@@ -4446,5 +4456,7 @@ namespace MDSDK.Dicom.Serialization
         public static readonly A SequenceDelimitationItem = new A(4342, 0xFFFE, 0xE0DD);
 
         #endregion
+
+#pragma warning restore    
     }
 }

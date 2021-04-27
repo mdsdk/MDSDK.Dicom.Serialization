@@ -2,7 +2,7 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    public class UnlimitedText : SpecificCharsetEncodedSingleValue, IHas32BitExplicitVRLength
+    internal sealed class UnlimitedText : SpecificCharsetEncodedSingleValue, IHas32BitExplicitVRLength
     {
         public UnlimitedText() : base("UT") { }
     }
