@@ -70,7 +70,7 @@ namespace MDSDK.Dicom.Serialization
 
             input.Read((int)metaInformationLength - AfterFileMetaInformationLength.Length, () =>
             {
-                var metaInformationReader = new DicomStreamReader(input, DicomTransferSyntax.ExplicitVRLittleEndian);
+                var metaInformationReader = DicomStreamReader.Create(input, DicomUID.TransferSyntax.ExplicitVRLittleEndian);
                 tmp = FileMetaInformationSerializer.Deserialize(metaInformationReader);
             });
 
@@ -89,7 +89,7 @@ namespace MDSDK.Dicom.Serialization
             output.WriteZeros(4);
             output.WriteBytes(AfterFileMetaInformationLength);
 
-            var metaInformationWriter = new DicomStreamWriter(output, DicomTransferSyntax.ExplicitVRLittleEndian);
+            var metaInformationWriter = DicomStreamWriter.Create(output, DicomUID.TransferSyntax.ExplicitVRLittleEndian);
             FileMetaInformationSerializer.Serialize(metaInformationWriter, fileMetaInformation);
 
             var endOfFileMetaInformationPosition = output.Position;

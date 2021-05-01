@@ -20,8 +20,8 @@ namespace MDSDK.Dicom.Serialization
                 throw new ArgumentException("UID is not a DICOM transfer syntax UID");
             }
             UID = uid;
-            VRCoding = (uid == DicomUID.ImplicitVRLittleEndian) ? DicomVRCoding.Implicit : DicomVRCoding.Explicit;
-            ByteOrder = (uid == DicomUID.Retired.ExplicitVRBigEndian) ? ByteOrder.BigEndian : ByteOrder.LittleEndian;
+            VRCoding = (uid == DicomUID.TransferSyntax.ImplicitVRLittleEndian) ? DicomVRCoding.Implicit : DicomVRCoding.Explicit;
+            ByteOrder = (uid == DicomUID.TransferSyntax.Retired.ExplicitVRBigEndian) ? ByteOrder.BigEndian : ByteOrder.LittleEndian;
         }
 
         public bool Equals(DicomTransferSyntax other) => UID == other.UID;
@@ -31,8 +31,5 @@ namespace MDSDK.Dicom.Serialization
         public override int GetHashCode() => UID.GetHashCode();
 
         public override string ToString() => UID.ToString();
-
-        public static readonly DicomTransferSyntax ImplicitVRLittleEndian = new DicomTransferSyntax(DicomUID.ImplicitVRLittleEndian);
-        public static readonly DicomTransferSyntax ExplicitVRLittleEndian = new DicomTransferSyntax(DicomUID.ExplicitVRLittleEndian);
     }
 }
