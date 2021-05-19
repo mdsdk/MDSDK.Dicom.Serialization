@@ -15,13 +15,31 @@ namespace MDSDK.Dicom.Serialization
     {
         private static Type GetNonNullableType(Type type) => Nullable.GetUnderlyingType(type) ?? type;
 
+        private class Converter : IEquatable<Converter>
+        {
+            public Type FromType { get; init; }
+            public Type ToType { get; init; }
+            public Func<object, object> Convert { get; init; }
+            public bool Equals(Converter other) => (other != null) && (FromType == other.FromType) && (ToType == other.ToType);
+            public override bool Equals(object obj) => (obj is Converter other) && Equals(other);
+            public override int GetHashCode() => HashCode.Combine(FromType, ToType);
+            public override string ToString() => $"{FromType}->{ToType}";
+        }
+
+        /// <summary>Adds a converter</summary>
+        public static void AddMultiValueConverter<T, TConverter>(string vrId) where TConverter : IMultiValue<T> where T : struct
+        {
+            var vr = DicomVR.Lookup(vrId);
+            vr.AddMultiValueConverter<T, TConverter>();
+        }
+
         class PropertySerializer
         {
             public DicomPropertyInfo DicomProperty { get; }
 
             public Type NonNullablePropertyType { get; }
 
-            public ValueRepresentation VR { get; }
+            public object VR { get; }
 
             public MethodInfo ReadValueMethod { get; }
 
@@ -33,7 +51,7 @@ namespace MDSDK.Dicom.Serialization
 
             public Func<object, DicomVRCoding, long> GetSerializedPropertyLength { get; }
 
-            public PropertySerializer(DicomPropertyInfo dicomProperty, ValueRepresentation vr, MethodInfo readValueMethod, MethodInfo writeValueMethod)
+            public PropertySerializer(DicomPropertyInfo dicomProperty, object vr, MethodInfo readValueMethod, MethodInfo writeValueMethod)
             {
                 DicomProperty = dicomProperty;
                 NonNullablePropertyType = GetNonNullableType(dicomProperty.PropertyType);
@@ -86,7 +104,7 @@ namespace MDSDK.Dicom.Serialization
                         else
                         {
                             var unpaddedValueLength = (long)getUnpaddedValueLengthMethod.Invoke(VR, new[] { value });
-                            return DicomStreamWriter.GetDataElementLength(VR, vrCoding, unpaddedValueLength);
+                            return DicomStreamWriter.GetDataElementLength((ValueRepresentation)VR, vrCoding, unpaddedValueLength);
                         }
                     };
                 }
@@ -126,22 +144,22 @@ namespace MDSDK.Dicom.Serialization
             {
                 var elementType = nonNullablePropertyType.GetElementType();
                 var multiValueInterface = typeof(IMultiValue<>).MakeGenericType(elementType);
-                if (multiValueInterface.IsAssignableFrom(vrType))
+                if (vr.TryGetMultiValueConverter(elementType, out object converter) || multiValueInterface.IsAssignableFrom(vrType))
                 {
                     var readValueMethod = multiValueInterface.GetMethod(nameof(IMultiValue<object>.ReadValues));
                     var writeValueMethod = multiValueInterface.GetMethod(nameof(IMultiValue<object>.WriteValues));
-                    propertySerializer = new PropertySerializer(dicomProperty, vr, readValueMethod, writeValueMethod);
+                    propertySerializer = new PropertySerializer(dicomProperty, converter ?? vr, readValueMethod, writeValueMethod);
                     return true;
                 }
             }
             else
             {
                 var multiValueInterface = typeof(IMultiValue<>).MakeGenericType(nonNullablePropertyType);
-                if (multiValueInterface.IsAssignableFrom(vrType))
+                if (vr.TryGetMultiValueConverter(nonNullablePropertyType, out object converter) || multiValueInterface.IsAssignableFrom(vrType))
                 {
                     var readValueMethod = multiValueInterface.GetMethod(nameof(IMultiValue<object>.ReadSingleValue));
                     var writeValueMethod = multiValueInterface.GetMethod(nameof(IMultiValue<object>.WriteSingleValue));
-                    propertySerializer = new PropertySerializer(dicomProperty, vr, readValueMethod, writeValueMethod);
+                    propertySerializer = new PropertySerializer(dicomProperty, converter ?? vr, readValueMethod, writeValueMethod);
                     return true;
                 }
             }

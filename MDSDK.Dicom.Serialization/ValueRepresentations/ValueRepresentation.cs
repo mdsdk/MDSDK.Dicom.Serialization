@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -68,6 +69,25 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
         internal void EnsureSingleValue<T>(DicomStreamReader reader) where T : struct, IFormattable
         {
             EnsureSingleValue(reader, Unsafe.SizeOf<T>());
+        }
+
+        private Dictionary<Type, object> _multiValueConverters = new();
+
+        internal void AddMultiValueConverter<T, TConverter>() where TConverter : IMultiValue<T> where T : struct
+        {
+            if (this is IMultiValue<T>)
+            {
+                // We cannot foresee the consequences of allowing a converter that implements an
+                // IMultiValue interface that is already implemented by this VR, so we err on the
+                // side of caution and forbid it.
+                throw new NotSupportedException($"Invalid converter, VR already supports this value type");
+            }
+            _multiValueConverters[typeof(T)] = Activator.CreateInstance(typeof(TConverter), this); ;
+        }
+
+        internal bool TryGetMultiValueConverter(Type userType, out object converter)
+        {
+            return _multiValueConverters.TryGetValue(userType, out converter);
         }
     }
 }

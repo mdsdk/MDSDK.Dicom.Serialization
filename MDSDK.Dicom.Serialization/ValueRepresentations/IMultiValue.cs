@@ -2,11 +2,13 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    internal interface IMultiValue
+#pragma warning disable 1591
+    
+    public interface IMultiValue
     {
     }
     
-    internal interface IMultiValue<T> : IMultiValue
+    public interface IMultiValue<T> : IMultiValue
     {
         T[] ReadValues(DicomStreamReader reader);
 
@@ -16,4 +18,6 @@ namespace MDSDK.Dicom.Serialization.ValueRepresentations
 
         void WriteSingleValue(DicomStreamWriter writer, T value);
     }
+
+#pragma warning restore 1591
 }

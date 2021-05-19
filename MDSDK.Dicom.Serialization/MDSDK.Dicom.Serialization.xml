@@ -82,6 +82,9 @@
         <member name="T:MDSDK.Dicom.Serialization.DicomSerializer">
             <summary>Provided methods for serializing and deserializing C# objects to and from DICOM</summary>
         </member>
+        <member name="M:MDSDK.Dicom.Serialization.DicomSerializer.AddMultiValueConverter``2(System.String)">
+            <summary>Adds a converter</summary>
+        </member>
         <member name="M:MDSDK.Dicom.Serialization.DicomSerializer.Deserialize(MDSDK.Dicom.Serialization.DicomStreamReader)">
             <summary>Deserializes a C# object from a DICOM data stream</summary>
         </member>

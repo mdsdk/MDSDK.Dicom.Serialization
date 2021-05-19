@@ -2,15 +2,18 @@
 
 namespace MDSDK.Dicom.Serialization.ValueRepresentations
 {
-    internal interface ISingleValue
+#pragma warning disable 1591
+    
+    public interface ISingleValue
     {
     }
 
-    internal interface ISingleValue<T> : ISingleValue
+    public interface ISingleValue<T> : ISingleValue
     {
         T ReadValue(DicomStreamReader dicomStreamReader);
 
         void WriteValue(DicomStreamWriter dicomStreamWriter, T value);
-
     }
+
+#pragma warning restore 1591
 }
