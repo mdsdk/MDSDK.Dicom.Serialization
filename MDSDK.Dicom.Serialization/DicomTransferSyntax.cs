@@ -31,5 +31,7 @@ namespace MDSDK.Dicom.Serialization
         public override int GetHashCode() => UID.GetHashCode();
 
         public override string ToString() => UID.ToString();
+
+        public bool IsJPEG => UID.Name.StartsWith("JPEG");
     }
 }

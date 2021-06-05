@@ -20,15 +20,17 @@ namespace MDSDK.Dicom.Serialization
             return new DicomStreamReader(input, transferSyntax);
         }
 
-        /// <summary>The stream from which the DicomStreamReader reads the DICOM data elements</summary>
+#pragma warning disable 1591
+
         public BufferedStreamReader Input { get; }
+
+#pragma warning restore 1591
 
         internal DicomTransferSyntax TransferSyntax { get; }
 
         internal BinaryDataReader DataReader { get; }
 
-        /// <summary>The VR coding used to read DICOM data elements</summary>
-        public DicomVRCoding VRCoding { get; }
+        internal DicomVRCoding VRCoding { get; }
 
         internal DicomStreamReader(BufferedStreamReader input, DicomTransferSyntax transferSyntax)
         {
@@ -144,7 +146,7 @@ namespace MDSDK.Dicom.Serialization
             EncodedStringDecoder = StringDecoder.Get(values);
         }
 
-        private static bool IsLegacyGroupLengthTag(DicomTag tag) => tag.ElementNumber == 0x000;
+        private static bool IsLegacyGroupLengthTag(DicomTag tag) => tag.ElementNumber == 0x0000;
 
         private void SkipValue()
         {
@@ -318,20 +320,101 @@ namespace MDSDK.Dicom.Serialization
 
         private void GetEncapsulatedPixelDataFramePositionsWithoutBasicOffsetTable(long[] framePositions)
         {
-            var basePosition = Input.Position;
-
-            if (framePositions.Length == 1)
+            if (TransferSyntax.IsJPEG)
             {
-                framePositions[0] = basePosition;
+                // End-of-frame marker 0xFFD9 == JPEG Interchange EOI == JPEG 2000 EOC
+                GetPotentiallyFragmentedEncapsulatedPixelDataFramePositions(framePositions, new byte[] { 0xFF, 0xD9 }); 
             }
             else
             {
-                throw new NotImplementedException("TODO");
+                GetNonFragmentedEncapsulatedPixelDataFramePositions(framePositions);
             }
         }
 
-        /// <summary>Reads the positions of the encapsulated pixel data frames relative to the start of the input stream</summary>
-        public void ReadEncapsulatedPixelDataFramePositions(long[] framePositions)
+        private void GetPotentiallyFragmentedEncapsulatedPixelDataFramePositions(long[] framePositions,
+            byte[] endOfFrameMarker)
+        {
+            bool IsEndOfFrameMarker(Span<byte> bytes)
+            {
+                for (var i = 0; i < endOfFrameMarker.Length; i++)
+                {
+                    if (bytes[i] != endOfFrameMarker[i])
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            for (var i = 0; i < framePositions.Length; i++)
+            {
+                framePositions[i] = Input.Position;
+
+                var endOfFrameReached = false;
+
+                while (!endOfFrameReached)
+                {
+                    ReadStartOfPixelDataFragment();
+
+                    if (ValueLength < endOfFrameMarker.Length + 1)
+                    {
+                        throw new Exception($"Pixel data fragment too short");
+                    }
+
+                    // End-of-frame marker may be followed by a one padding byte to ensure fragment length is even
+
+                    Input.SkipBytes(ValueLength - (endOfFrameMarker.Length + 1));
+
+                    var endOfFragment = Input.ReadBytes(endOfFrameMarker.Length + 1);
+
+                    endOfFrameReached = IsEndOfFrameMarker(endOfFragment) || IsEndOfFrameMarker(endOfFragment.AsSpan(1));
+
+                    CurrentTag = DicomTag.Undefined;
+                }
+            }
+
+            ReadEndOfPixelDataFragmentSequence();
+        }
+
+        private void GetNonFragmentedEncapsulatedPixelDataFramePositions(long[] framePositions)
+        {
+            for (var i = 0; i < framePositions.Length; i++)
+            {
+                framePositions[i] = Input.Position;
+
+                ReadStartOfPixelDataFragment();
+                Input.SkipBytes(ValueLength);
+                CurrentTag = DicomTag.Undefined;
+            }
+
+            ReadEndOfPixelDataFragmentSequence();
+        }
+
+        private void ReadStartOfPixelDataFragment()
+        {
+            ReadTagVRLength();
+            if (CurrentTag != DicomTag.Item)
+            {
+                throw new Exception($"Expected {DicomTag.Item} for pixel data fragment but got {CurrentTag}");
+            }
+
+            if (ValueLength == UndefinedLength)
+            {
+                throw new Exception($"Pixel data fragment may not have undefined length");
+            }
+        }
+
+        private void ReadEndOfPixelDataFragmentSequence()
+        {
+            ReadTagVRLength();
+            if (CurrentTag != DicomTag.SequenceDelimitationItem)
+            {
+                throw new Exception($"Expected {DicomTag.SequenceDelimitationItem} after pixel data fragments but got {CurrentTag}");
+            }
+        }
+
+        /// <summary>Gets the positions of the encapsulated pixel data frames relative to the start of the input stream</summary>
+        public void GetEncapsulatedPixelDataFramePositions(long[] framePositions)
         {
             if (!TrySkipToPixelData(out uint valueLength))
             {
@@ -362,7 +445,8 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
-        /// <summary>Reads the contents of an encapsulated pixel data frame using the given frame decoder</summary>
+#pragma warning disable 1591
+        
         public void ReadEncapsulatedPixelDataFrame(Action<BufferedStreamReader> decodeFrame)
         {
             if (!TryReadItemTagOfSequenceWithUndefinedLength())
@@ -397,12 +481,12 @@ namespace MDSDK.Dicom.Serialization
             }
             else
             {
-                if (DataReader.BytesRemaining > int.MaxValue)
+                if (Input.BytesRemaining > int.MaxValue)
                 {
-                    throw new NotSupportedException($"Multi-fragment frame length {DataReader.BytesRemaining} not supported");
+                    throw new NotSupportedException($"Multi-fragment frame length {Input.BytesRemaining} not supported");
                 }
 
-                var buffer = ArrayPool<byte>.Shared.Rent((int)DataReader.BytesRemaining);
+                var buffer = ArrayPool<byte>.Shared.Rent((int)Input.BytesRemaining);
                 try
                 {
                     var n = 0;
@@ -425,6 +509,8 @@ namespace MDSDK.Dicom.Serialization
             }
         }
 
+#pragma warning restore 1591
+
         /// <summary>Reads a user defined data set using the given DicomDataConsumer implementation</summary>
         public void ReadDataSet<TDataSet>(TDataSet dataSet, DicomDataConsumer<TDataSet> consumer)
         {
@@ -438,7 +524,7 @@ namespace MDSDK.Dicom.Serialization
                 {
                     break;
                 }
-                
+
                 DicomAttribute.TryLookup(CurrentTag, out DicomAttribute attribute);
 
                 var vr = ExplicitVR ?? attribute?.ImplicitVR;

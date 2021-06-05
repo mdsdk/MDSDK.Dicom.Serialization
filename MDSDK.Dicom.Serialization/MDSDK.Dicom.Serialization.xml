@@ -118,20 +118,11 @@
         <member name="M:MDSDK.Dicom.Serialization.DicomStreamReader.Create(MDSDK.BinaryIO.BufferedStreamReader,MDSDK.Dicom.Serialization.DicomUID)">
             <summary>Creates a DicomStreamReader for reading DICOM data elements from a stream using the given transfer syntax</summary>
         </member>
-        <member name="P:MDSDK.Dicom.Serialization.DicomStreamReader.Input">
-            <summary>The stream from which the DicomStreamReader reads the DICOM data elements</summary>
-        </member>
-        <member name="P:MDSDK.Dicom.Serialization.DicomStreamReader.VRCoding">
-            <summary>The VR coding used to read DICOM data elements</summary>
-        </member>
         <member name="M:MDSDK.Dicom.Serialization.DicomStreamReader.TrySkipToPixelData(System.UInt32@)">
             <summary>Tries to skip to the value field of the PixelData attribute, if present</summary>
         </member>
-        <member name="M:MDSDK.Dicom.Serialization.DicomStreamReader.ReadEncapsulatedPixelDataFramePositions(System.Int64[])">
-            <summary>Reads the positions of the encapsulated pixel data frames relative to the start of the input stream</summary>
-        </member>
-        <member name="M:MDSDK.Dicom.Serialization.DicomStreamReader.ReadEncapsulatedPixelDataFrame(System.Action{MDSDK.BinaryIO.BufferedStreamReader})">
-            <summary>Reads the contents of an encapsulated pixel data frame using the given frame decoder</summary>
+        <member name="M:MDSDK.Dicom.Serialization.DicomStreamReader.GetEncapsulatedPixelDataFramePositions(System.Int64[])">
+            <summary>Gets the positions of the encapsulated pixel data frames relative to the start of the input stream</summary>
         </member>
         <member name="M:MDSDK.Dicom.Serialization.DicomStreamReader.ReadDataSet``1(``0,MDSDK.Dicom.Serialization.DicomDataConsumer{``0})">
             <summary>Reads a user defined data set using the given DicomDataConsumer implementation</summary>
